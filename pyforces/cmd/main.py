@@ -13,9 +13,8 @@ def main():
         root.mkdir()
 
     # Init config, reload web session (cookies)
-    cfg = Config.from_file(root / 'config.pickle')
-    cln = CloudscraperClient.from_file(root / 'cookies.txt')
-    print(cln.cookies)
+    cfg = Config.from_file(root / 'config.json')
+    cln = CloudscraperClient.from_path(root)
     
     # Parse command line arguments
     description = """
