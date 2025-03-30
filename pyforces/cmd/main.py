@@ -4,6 +4,9 @@ from pathlib import Path
 
 from pyforces.client import Client, CloudscraperClient
 from pyforces.cmd.config import do_config
+from pyforces.cmd.parse import do_parse
+from pyforces.cmd.submit import do_submit
+from pyforces.cmd.test import do_test
 from pyforces.config import Config
 
 def main():
@@ -31,23 +34,37 @@ Welcome to pyforces! Parse, test, submit, make you blazingly fast!
     race_parser = subparsers.add_parser('race')
     race_parser.add_argument('contest_id', type=int)
 
+    # parse
+    parse_parser = subparsers.add_parser('parse')
+
     # test
     test_parser = subparsers.add_parser('test')
-    test_parser.add_argument('-f', '--file', type=Path)
+    test_parser.add_argument('-f', '--file', type=Path, help="""
+The source file (like a.cpp). By default, pyforces will get the executable file's name by source file,
+and execute it.
+
+Support for other languages are coming soon. """)
 
     # submit
     submit_parser = subparsers.add_parser('submit')
     submit_parser.add_argument('-f', '--file', type=Path)
+    submit_parser.add_argument('--program-type-id', type=int, help="""
+If you want to submit languages other than C++, set this to the program type id
+of your language.  To view the value, right-click the drop down menu in your browser.
+
+For example, PyPy 3.10 has value 70. """)
     
     args = parser.parse_args()
     match args.subcommand:
         case 'config':
-            # TODO
-            do_config(cfg=cfg, cln=cln)
+            do_config(cfg, cln)
         case 'race':
+            # TODO
             pass
+        case 'parse':
+            do_parse(cfg, cln)
         case 'test':
-            pass
+            do_test(cfg, cln, args)
         case 'submit':
-            pass
+            do_submit(cfg, cln, args)
 

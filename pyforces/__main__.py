@@ -1,9 +1,13 @@
-from pyforces.cmd.main import main
+from pyforces.cmd.main import main as cmd_main
 import logging
 logging.basicConfig(level=logging.INFO)
 
-if __name__ == '__main__':
+def main():
     try:
-        main()
+        cmd_main()
     except KeyboardInterrupt:
         pass
+
+
+if __name__ == '__main__':
+    main()

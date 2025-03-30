@@ -4,8 +4,9 @@ import os
 from pathlib import Path
 import http.cookiejar
 import logging
-from typing import Dict, Optional
+from typing import Dict, List, Optional, Tuple
 
+from pyforces.cf.problem import CFProblem
 from pyforces.utils import parse_csrf_token_from_html
 
 class Client(ABC):
@@ -31,7 +32,7 @@ class Client(ABC):
         ...
 
     @abstractmethod
-    def parse_testcases(self, url: str):
+    def parse_testcases(self, url: str) -> List[Tuple[str, str]]:
         ...
 
     @abstractmethod
@@ -140,8 +141,11 @@ class CloudscraperClient(Client):
             }
         )
 
-    def parse_testcases(self, url: str):
-        pass
+    def parse_testcases(self, url: str) -> List[Tuple[str, str]]:
+        problem = CFProblem.parse_from_url(
+            url, web_parser=lambda u: self.scraper.get(u, headers=self.headers).text
+        )
+        return problem.testcases
     
     def save(self):
         super().save()

@@ -108,6 +108,8 @@ def set_gen_after_parse(cfg: Config):
 def set_host_domain(cfg: Config):
     print(f"Current host domain: {cfg.host}")
     cfg.host = input("New host domain (don't forget the https://):\n")
+    if cfg.host.endswith('/'):
+        cfg.host = cfg.host[:-1]
     cfg.save()
 
 def do_config(cfg: Config, cln: Client):

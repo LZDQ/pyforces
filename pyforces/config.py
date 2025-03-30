@@ -1,7 +1,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Literal, Optional
 import pickle
 import logging
 
@@ -27,10 +27,10 @@ class Config:
 
     Vars:
         templates: code templates
-        default_template: index of default template
+        default_template: index of default template, -1 if not set
         gen_after_parse: whether gen a template after parse
         host: codeforces host url
-        folder_name: TODO
+        submit_cpp_std: preferred cpp version, could be cpp17, cpp20, cpp23
     """
     
     def __init__(self,
@@ -38,12 +38,14 @@ class Config:
                  default_template: int,
                  gen_after_parse: bool,
                  host: str,
+                 submit_cpp_std: str,
                  _config_file: Path,
                  ):
         self.templates = templates
         self.default_template = default_template
         self.gen_after_parse = gen_after_parse
         self.host = host
+        self.submit_cpp_std = submit_cpp_std
         self._config_file = _config_file
     
     @classmethod
@@ -64,6 +66,7 @@ class Config:
             default_template=cfg.get('default_template', -1),
             gen_after_parse=cfg.get('gen_after_parse', True),
             host=cfg.get('host', 'https://codeforces.com'),
+            submit_cpp_std='cpp17',
             _config_file=path,
         )
 
@@ -73,6 +76,7 @@ class Config:
             'templates': [{'path': str(t.path), 'name': t.name} for t in self.templates],
             'default_template': self.default_template,
             'gen_after_parse': self.gen_after_parse,
+            'submit_cpp_std': self.submit_cpp_std,
             'host': self.host,
         }
         with self._config_file.open('w') as fp:
