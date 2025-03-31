@@ -2,13 +2,10 @@ import os
 from argparse import Namespace
 from pathlib import Path
 from pyforces.cf.execute import TraditionalExecutor
-from pyforces.client import Client
-from pyforces.config import Config
-from pyforces.utils import get_current_contest_problem_id, get_current_cpp_file
+from pyforces.utils import get_current_cpp_file
 
 
-def do_test(cfg: Config, cln: Client, args: Namespace):
-    # contest_id, problem_id = get_current_contest_problem_id()
+def do_test(args: Namespace):
     idx = 1
     if args.file:
         source_file = args.file
@@ -31,8 +28,6 @@ def do_test(cfg: Config, cln: Client, args: Namespace):
         time_limit=2,  # TL and ML are defaults now, doesn't affect small sample testcases
         memory_limit=512*1024*1024,
     )
-    passed = True
-    max_memory = 0
     while True:
         in_file = Path(f"in{idx}.txt")
         ans_file = Path(f"ans{idx}.txt")

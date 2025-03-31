@@ -1,7 +1,6 @@
 from enum import Enum
-import logging
 from pathlib import Path
-from typing import Callable, List, Literal, Tuple, Optional
+from typing import Callable, Literal, Optional
 
 from pyforces.cf.parser import parse_testcases_from_html
 
@@ -17,7 +16,7 @@ class CFProblem:
         self,
         url: str,
         problem_type: ProblemType,
-        testcases: List[Tuple[str, str]],
+        testcases: list[tuple[str, str]],
         time_limit: float,
         memory_limit: int,  # in bytes
     ):

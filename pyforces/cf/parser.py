@@ -1,15 +1,17 @@
-from typing import List, Tuple
 from lxml import etree
 from io import StringIO
-import logging
+import re
+from logging import getLogger
 
-def parse_testcases_from_html(html: str) -> List[Tuple[str, str]]:
+logger = getLogger(__name__)
+
+def parse_testcases_from_html(html: str) -> list[tuple[str, str]]:
     """ Parse and return the testcases. """
     tree = etree.parse(StringIO(html), etree.HTMLParser())
     testcases = []
     sample_divs = tree.xpath("//div[@class='sample-test']")
     if not sample_divs:
-        logging.error("No sample-test divs found")
+        logger.error("No sample-test divs found")
 
     for sample_div in sample_divs:
         input_div = sample_div[0]
@@ -28,4 +30,31 @@ def parse_testcases_from_html(html: str) -> List[Tuple[str, str]]:
         testcases.append((input_text + '\n', answer_text + '\n'))
 
     return testcases
+
+def parse_handle_from_html(html: str) -> str:
+    """ Parse the username from html, throw an error if not logged in """
+    # handle is in javascript; accepts alphanumeric, underscore and dash
+    return re.search(r'var handle = "([\w\-]+)";', html).group(1)
+
+def parse_csrf_token_from_html(html: str) -> str:
+    """ Parse the csrf token, throw an error if fail """
+    # <meta name="X-Csrf-Token" content="a-hex-string"/>
+    return re.search(r'<meta name="X-Csrf-Token" content="([0-9a-f]+)"/>', html).group(1)
+
+def parse_countdown_from_html(html: str) -> tuple[int, int, int] | None:
+    if 'Go!</a>' in html:
+        return
+    tree = etree.parse(StringIO(html), etree.HTMLParser())
+    countdown_divs = tree.xpath("//span[@class='countdown']")
+    if len(countdown_divs) != 1:
+        logger.error("Found %d countdown divs", len(countdown_divs))
+        return
+    h_m_s = countdown_divs[0].text
+    h, m, s = h_m_s.split(':')
+    h, m, s = int(h), int(m), int(s)
+    return h, m, s
+
+def parse_problem_count_from_html(html: str) -> int:
+    tree = etree.parse(StringIO(html), etree.HTMLParser())
+    return len(tree.xpath("//td[contains(@class, 'id')]"))
 

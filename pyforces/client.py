@@ -1,13 +1,16 @@
 from abc import ABC, abstractmethod
 import json
+import logging
 import os
 from pathlib import Path
 import http.cookiejar
-import logging
-from typing import Dict, List, Optional, Tuple
+from logging import getLogger
+from typing import Optional
 
 from pyforces.cf.problem import CFProblem
-from pyforces.utils import parse_csrf_token_from_html
+from pyforces.cf.parser import parse_countdown_from_html, parse_handle_from_html, parse_csrf_token_from_html, parse_problem_count_from_html
+
+logger = getLogger(__name__)
 
 class Client(ABC):
     """ The automated web handler class.
@@ -23,7 +26,7 @@ class Client(ABC):
         # try:
         #     cookies.load()
         # except FileNotFoundError:
-        #     logging.info("Cookie file not found, will create one.")
+        #     logger.info("Cookie file not found, will create one.")
         # return cls(cookies=cookies, _root=path)
         ...
 
@@ -32,7 +35,15 @@ class Client(ABC):
         ...
 
     @abstractmethod
-    def parse_testcases(self, url: str) -> List[Tuple[str, str]]:
+    def parse_testcases(self, url: str) -> list[tuple[str, str]]:
+        ...
+
+    @abstractmethod
+    def parse_countdown(self, url_contest: str) -> tuple[int, int, int] | None:
+        ...
+
+    @abstractmethod
+    def parse_problem_count(self, url_contest: str) -> int:
         ...
 
     @abstractmethod
@@ -60,46 +71,54 @@ class CloudscraperClient(Client):
     """ This client sends any HTTP requests with cloudscraper, with custom HTTP headers. """
     
     def __init__(self,
-                 headers: Optional[Dict[str, str]],
+                 headers: Optional[dict[str, str]],
                  csrf_token: Optional[str],
+                 handle: Optional[str],
                  _root: Path,
                  _headers_file: Path,
                  _csrf_token_file: Path,
                  ):
         import cloudscraper
-        self.scraper = cloudscraper.create_scraper(debug=True)
+        self.scraper = cloudscraper.create_scraper(debug=logger.isEnabledFor(logging.DEBUG))
         self.headers = headers
         self.csrf_token = csrf_token
+        self.handle = handle
         self._root = _root
         self._headers_file = _headers_file
-        self._csrf_token_file = _csrf_token_file
+        self._token_file = _csrf_token_file
     
     @classmethod
     def from_path(cls, path: Path):
         headers_file = path / 'headers.txt'
-        csrf_token_file = path / 'csrf_token.txt'
+        token_file = path / 'csrf_token_and_handle.txt'
         try:
             with headers_file.open() as fp:
                 headers = json.load(fp)
         except FileNotFoundError:
-            logging.info("%s not found", headers_file)
+            logger.info("%s not found", headers_file)
             headers = None
         except json.JSONDecodeError:
-            logging.error("%s decode error, this should not happen!", headers_file)
+            logger.error("%s decode error, this should not happen!", headers_file)
             headers = None
 
         try:
-            csrf_token = csrf_token_file.read_text()
+            csrf_token, handle = token_file.read_text().splitlines()
         except FileNotFoundError:
-            logging.info("%s not found, will parse it later", csrf_token_file)
+            logger.info("%s not found, will parse it later", token_file)
             csrf_token = None
+            handle = None
+        except ValueError:
+            logger.warning("Failed to get csrf token and handle from %s", token_file)
+            csrf_token = None
+            handle = None
 
         return cls(
             headers=headers,
             csrf_token=csrf_token,
+            handle=handle,
             _root=path,
             _headers_file=headers_file,
-            _csrf_token_file=csrf_token_file,
+            _csrf_token_file=token_file,
         )
 
     def login(self, host: str, username: str, password: str):
@@ -118,7 +137,7 @@ class CloudscraperClient(Client):
             print("You should login with HTTP headers first, see video tutorial.")
             return
         if self.csrf_token is None:
-            logging.info("Csrf token not set, parsing it")
+            logger.info("Csrf token not set, parsing it")
             from urllib.parse import urlparse
             parsed = urlparse(url)
             self.parse_csrf_token(f"{parsed.scheme}://{parsed.hostname}")
@@ -137,11 +156,11 @@ class CloudscraperClient(Client):
                 'programTypeId': program_type_id,
                 'source': source,
                 # 'sourceFile': '',
-                '_tta': 961,
+                # '_tta': 961,
             }
         )
 
-    def parse_testcases(self, url: str) -> List[Tuple[str, str]]:
+    def parse_testcases(self, url: str) -> list[tuple[str, str]]:
         problem = CFProblem.parse_from_url(
             url, web_parser=lambda u: self.scraper.get(u, headers=self.headers).text
         )
@@ -151,21 +170,43 @@ class CloudscraperClient(Client):
         super().save()
         if self.headers:
             with self._headers_file.open('w') as fp:
-                json.dump(self.headers, fp)
-            logging.info("Saved %d headers to %s", len(self.headers), self._headers_file)
+                json.dump(self.headers, fp, indent=4)
+            logger.info("Saved %d headers to %s", len(self.headers), self._headers_file)
         if self.csrf_token:
-            with self._csrf_token_file.open('w') as fp:
-                fp.write(self.csrf_token)
-            logging.info("Saved csrf token")
+            with self._token_file.open('w') as fp:
+                fp.write(self.csrf_token + '\n')
+                fp.write(self.handle)
+            logger.info("Saved csrf token and handle")
 
-    def parse_csrf_token(self, host: str):
+    def parse_csrf_token_and_handle(self, host: str):
         if self.headers is None:
-            print("You need to configure HTTP headers first")
+            logger.error("You need to configure HTTP headers first")
             return
-        if self.csrf_token:
-            print(f"Current csrf token: {self.csrf_token}")
+        logger.info("Parsing csrf token and handle")
+        logger.info("Current csrf token: %s", self.csrf_token)
+        logger.info("Current handle: %s", self.handle)
 
         resp = self.scraper.get(host, headers=self.headers)
-        self.csrf_token = parse_csrf_token_from_html(resp.text)
-        print(f"Parsed csrf token {self.csrf_token}")
+        try:
+            self.csrf_token = parse_csrf_token_from_html(resp.text)
+            self.handle = parse_handle_from_html(resp.text)
+            logger.info("Parsed csrf token %s and handle %s", self.csrf_token, self.handle)
+        except:
+            self.csrf_token = None
+            self.handle = None
+            logger.warning("Cannot parse csrf token and handle (not logged in)")
+    
+    def parse_countdown(self, url_contest: str) -> tuple[int, int, int] | None:
+        """ Parse the /countdown url and return h,m,s, or None if already started
+        Args:
+            url_contest: contest url without /countdown
+        """
+        url_countdown = url_contest + '/countdown'
+        resp = self.scraper.get(url_countdown, headers=self.headers)
+        return parse_countdown_from_html(resp.text)
+
+    def parse_problem_count(self, url_contest: str) -> int:
+        resp = self.scraper.get(url_contest, headers=self.headers)
+        return parse_problem_count_from_html(resp.text)
+        
 

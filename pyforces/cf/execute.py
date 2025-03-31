@@ -1,20 +1,21 @@
-import logging
 import subprocess
 import resource
 import re
+import time
+from logging import getLogger
 from pathlib import Path
-from typing import TextIO, Tuple
+from typing import TextIO
 from dataclasses import dataclass
 
-import time
+logger = getLogger(__name__)
 
-def compare_output(output: str, answer: str) -> Tuple[bool, str]:
+def compare_output(output: str, answer: str) -> tuple[bool, str]:
     """ Compare output with answer. Return (passed, reason if not passed) """
     # TODO: add more logics like floating-point errors
     output = output.rstrip()
     answer = answer.rstrip()
     if re.match(r'\b(yes|no)\b', answer, flags=re.IGNORECASE):
-        logging.info("Found 'Yes or No' type problem, performing case replacement")
+        logger.info("Found 'Yes or No' type problem, performing case replacement")
         output = re.sub(r'\b(yes|no)\b', lambda m: m.group(1).lower(), output, flags=re.IGNORECASE)
         answer = re.sub(r'\b(yes|no)\b', lambda m: m.group(1).lower(), answer, flags=re.IGNORECASE)
 
