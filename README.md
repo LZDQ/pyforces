@@ -8,7 +8,7 @@ Yet another command-line interface tool for [Codeforces](https://codeforces.com)
 
 ## Why another CLI tool?
 
-Codeforces added bot detection recently, and AFAIK all of the existing CLI tool are blocked. [ref1](https://codeforces.com/blog/entry/96091) [ref2](https://github.com/woshiluo/cf-tool/issues/5)
+Codeforces added bot detection recently, and AFAIK all the existing CLI tools are blocked. [ref1](https://codeforces.com/blog/entry/96091) [ref2](https://github.com/woshiluo/cf-tool/issues/5)
 
 ## Features
 
@@ -52,12 +52,13 @@ Then, follow this video to configure your HTTP header:
 
 https://github.com/user-attachments/assets/cac3b09a-1809-4de3-bc9a-53d8d9df8c05
 
+Note: in the video the root name has been configured to `cf` not default `pyforces`.
 
 You can also re-ensure you are logged in with `pyforces config`.
 
 ## FAQ
 
-#### pip install failed
+### pip install failed
 
 ```
 error: externally-managed-environment
@@ -67,13 +68,13 @@ error: externally-managed-environment
 
 It is recommended to install this tool in a virtual environment managed by miniconda.
 
-If you don't want to use virtual environment, adding `--break-system-packages` at the end of `pip install` should work.
+If you don't want to use a virtual environment, adding `--break-system-packages` at the end of `pip install` should work.
 
-#### Command 'pyforces' not found
+### Command 'pyforces' not found
 
 If `pyforces` command isn't available, you can use `python -m pyforces` to invoke pyforces.
 
-#### Is it violating bot detection?
+### Is it violating bot detection?
 
 Since login requries you to actually login in Firefox first, this doesn't violate bot detection. For more details, see [here](https://codeforces.com/blog/entry/134322).
 
