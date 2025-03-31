@@ -49,7 +49,7 @@ First, you need to login to codeforces in Firefox. Support for other browsers ar
 
 Then, follow this video to configure your HTTP header:
 
-
+https://github.com/user-attachments/assets/5da81d91-17b8-4424-8b11-5c4d87fb6539
 
 You can also re-ensure you are logged in with `pyforces config`.
 
