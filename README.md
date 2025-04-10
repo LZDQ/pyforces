@@ -38,14 +38,45 @@ See [FAQ](#FAQ) if you encounter any problems.
 
 * `pyforces config` to login and configure your tool. Firefox is needed for login.
 * `pyforces race 2092` to start the contest `2092`.
-* `pyforces test` in the problem folder, like `~/pyforces/contest/2092/a`, to test your solution against parsed sample testcases.
+* `pyforces test` in the problem folder, like `~/pyforces/contest/2092/a`, to test your solution against parsed sample testcases. Exit 0 on success, 1 in most cases and the actual non-zero exit code if Runtime Error.
 * `pyforces submit` in the problem folder, to submit your solution. Currently the CLI doesn't output anything on success, you need to refresh the submission page.
 * `pyforces parse` in the problem folder to parse sample testcases.
 * `pyforces gen` in the problem folder to generate a file from template.
 
+## Vim config
+
+The intended use of this tool is to bind some keys to speed up testing and submitting. Here is an example (neo)vim keybinding configuration:
+
+```vim
+" test, and submit on success
+nnoremap <F5> :term pyforces test -f % && pyforces submit -f %<CR>
+" test
+nnoremap <F6> :term pyforces test -f %<CR>
+" submit
+nnoremap <F7> :w<CR>:term pyforces submit -f %<CR>
+```
+
+Change the keys to your choices as you wish.
+
+Also, if you don't want to mess up keybindings of other buffers or projects, consider adding a filetype check:
+
+```vim
+" test, and submit on success
+au FileType cpp nnoremap <buffer><F5> :term pyforces test -f % && pyforces submit -f %<CR>
+" test
+au FileType cpp nnoremap <buffer><F6> :term pyforces test<CR>
+" submit
+au FileType cpp nnoremap <buffer><F7> :w<CR>:term pyforces submit -f %<CR>
+
+" python support, with program_type_id=70 (PyPy 3.10)
+au FileType py nnoremap <buffer><F5> :term pyforces test -f % && pyforces submit --file=% --program-type-id=70<CR>
+au FileType py nnoremap <buffer><F6> :term pyforces test -f %<CR>
+au FileType py nnoremap <buffer><F7> :w<CR>:term pyforces submit -f % --program-type-id=70<CR>
+```
+
 ## How to login
 
-First, you need to login to codeforces in Firefox. Support for other browsers are not added yet, or you can manually put all your headers in `~/.pyforces/headers.txt`.
+First, you need to login to codeforces in Firefox. If you don't use Firefox, either use it once or manually config your `~/.pyforces/headers.txt`. If you don't know what is `~`, try searching `home directory`.
 
 Then, follow this video to configure your HTTP header:
 
@@ -53,6 +84,8 @@ Then, follow this video to configure your HTTP header:
 https://github.com/user-attachments/assets/cac3b09a-1809-4de3-bc9a-53d8d9df8c05
 
 Note: in the video the root name has been configured to `cf` not default `pyforces`.
+
+If the method in the video fails, check [FAQ](#FAQ) first. If that doesn't help, you can manually paste your headers to `~/.pyforces/headers.txt`. If you use Firefox, directly pasting the "(Copy All)" to `~/.pyforces/headers.txt` is okay. If you use other browsers, check [this](example/headers.txt) example `headers.txt`.
 
 You can also re-ensure you are logged in with `pyforces config`.
 
@@ -74,6 +107,10 @@ If you don't want to use a virtual environment, adding `--break-system-packages`
 
 If `pyforces` command isn't available, you can use `python -m pyforces` to invoke pyforces.
 
+### Terminal stuck when pasting headers
+
+Change the buffer size of your terminal, and make sure you press enter after pasting it if it seems to stuck. You can modify the buffer size in your terminal's settings.
+
 ### Is it violating bot detection?
 
 Since login requries you to actually login in Firefox first, this doesn't violate bot detection. For more details, see [here](https://codeforces.com/blog/entry/134322).
@@ -85,7 +122,8 @@ Since login requries you to actually login in Firefox first, this doesn't violat
 - [ ] Submission status tracking
 - [ ] Floating-point errors in tests
 - [ ] Special Judge and Interactive problems
-- [ ] (Neo)vim config example
+- [x] (Neo)vim config example
 - [ ] Sphinx documentation
 - [ ] Support for AI automatic problem solving as a library
+- [ ] Wait for my mood to become better and test on multiple platforms
 

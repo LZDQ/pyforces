@@ -1,0 +1,1 @@
+This folder contains some examples like the header file if you want to do it manually. It is okay to directly paste from Firefox "(Copy All)" to `~/.pyforces/headers.txt`, the tool is smart enough to determine.

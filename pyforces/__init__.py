@@ -1,6 +1,3 @@
-from importlib.metadata import version, PackageNotFoundError
+from importlib.metadata import version
 
-try:
-    __version__ = version("pyforces")
-except PackageNotFoundError:
-    __version__ = "0.0.0-dev"
+__version__ = version(__package__)

@@ -9,6 +9,7 @@ from typing import Optional
 
 from pyforces.cf.problem import CFProblem
 from pyforces.cf.parser import parse_countdown_from_html, parse_handle_from_html, parse_csrf_token_from_html, parse_problem_count_from_html
+from pyforces.utils import parse_firefox_http_headers
 
 logger = getLogger(__name__)
 
@@ -100,6 +101,14 @@ class CloudscraperClient(Client):
         except json.JSONDecodeError:
             logger.error("%s decode error, this should not happen!", headers_file)
             headers = None
+        if len(headers) == 1 and list(headers.keys())[0].startswith("Request Headers"):
+            # firefox headers, parse it
+            logger.info("Detected headers with only one entry with dict value, trying parsing firefox headers...")
+            try:
+                headers = parse_firefox_http_headers(headers)
+            except:
+                logger.error("Failed to parse firefox headers")
+                headers = None
 
         try:
             csrf_token, handle = token_file.read_text().splitlines()

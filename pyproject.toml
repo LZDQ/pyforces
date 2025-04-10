@@ -19,10 +19,6 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools_scm]
 version_scheme = "no-guess-dev"  # uses tag if present; else commit hash
 local_scheme = "node-and-date"   # makes version unique per commit
-fallback_version = "0.1.0"
-
-[tool.setuptools.dynamic]
-version = {attr = "pyforces.__version__"}
 
 [project.scripts]
 pyforces = "pyforces.__main__:main"
