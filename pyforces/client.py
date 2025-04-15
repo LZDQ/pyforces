@@ -107,7 +107,7 @@ class CloudscraperClient(Client):
         except json.JSONDecodeError:
             logger.error("%s decode error, this should not happen!", headers_file)
             headers = None
-        if len(headers) == 1 and list(headers.keys())[0].startswith("Request Headers"):
+        if headers and len(headers) == 1 and list(headers.keys())[0].startswith("Request Headers"):
             # firefox headers, parse it
             logger.info("Detected headers with only one entry with dict value, trying parsing firefox headers...")
             try:

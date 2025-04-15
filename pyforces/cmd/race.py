@@ -26,7 +26,7 @@ def do_race(cfg: Config, cln: Client, contest_id: int):
         webbrowser.open(url_contest + cfg.race_open_url)
 
     contest_path = Path.home() / cfg.root_name / 'contest' / str(contest_id)
-    contest_path.mkdir(exist_ok=True)
+    contest_path.mkdir(exist_ok=True, parents=True)
 
     if cfg.race_delay_parse:
         print(f"Delaying parsing")

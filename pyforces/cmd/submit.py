@@ -49,7 +49,7 @@ def do_submit(cfg: Config, cln: Client, args: Namespace):
             status = cln.parse_status(url)
             os.system('clear' if os.name == 'posix' else 'cls')
             print(status)
-            if not status.startswith(["Running", "Pending"]):
+            if not status.startswith(("Running", "Pending")):
                 break
             time.sleep(args.poll)
 
