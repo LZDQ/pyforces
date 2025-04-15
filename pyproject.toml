@@ -6,6 +6,7 @@ dependencies = [
 	"cloudscraper",
 	"lxml",
 	"countdown-timer",
+	"psutil",
 ]
 requires-python = ">= 3.10"
 license = "WTFPL"

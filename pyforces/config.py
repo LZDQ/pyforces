@@ -73,7 +73,7 @@ class Config:
             logger.info("Config file not found, will create one.")
             cfg = {}
         except json.JSONDecodeError:
-            logger.error("Config file json decode error, this should not happen!.")
+            logger.error("Config file json decode error, this should not happen!")
             cfg = {}
 
         return cls(
@@ -83,9 +83,9 @@ class Config:
             host=cfg.get('host', 'https://codeforces.com'),
             root_name=cfg.get('root_name', 'pyforces'),
             submit_cpp_std=cfg.get('submit_cpp_std', 'cpp17'),
-            race_pre_sec=cfg.get("race_pre_sec", 1),
-            race_open_url=cfg.get("race_open_url", "/problems"),
-            race_delay_parse=cfg.get("race_delay_parse", 0),
+            race_pre_sec=cfg.get('race_pre_sec', 1),
+            race_open_url=cfg.get('race_open_url', '/problems'),
+            race_delay_parse=cfg.get('race_delay_parse', 0),
             _config_file=path,
         )
 
@@ -103,4 +103,4 @@ class Config:
             'race_delay_parse': self.race_delay_parse,
         }
         with self._config_file.open('w') as fp:
-            json.dump(cfg, fp)
+            json.dump(cfg, fp, indent=4)

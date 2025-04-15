@@ -1,4 +1,4 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, BooleanOptionalAction
 import logging
 import os
 from pathlib import Path
@@ -40,10 +40,13 @@ Welcome to pyforces! Parse, test, submit, make you blazingly fast!
     # test
     test_parser = subparsers.add_parser('test')
     test_parser.add_argument('-f', '--file', type=Path, help="""
-The source file (like a.cpp). By default, pyforces will get the executable file's name by source file,
-and execute it.
-
-Support for other languages are coming soon. """)
+The source file (like a.cpp). For cpp files, pyforces will get the executable file's name by source file,
+and execute it.  For py files, pyforces will use the current interpreter to run the file.
+    """)
+    test_parser.add_argument('--poll', action=BooleanOptionalAction, default=True, help="""
+Whether use psutil to poll and track memory usage. Default is true. If false, will use 
+subprocess.run instead.
+    """)
 
     # submit
     submit_parser = subparsers.add_parser('submit')
@@ -51,8 +54,13 @@ Support for other languages are coming soon. """)
     submit_parser.add_argument('--program-type-id', type=int, help="""
 If you want to submit languages other than C++, set this to the program type id
 of your language.  To view the value, right-click the drop down menu in your browser.
-
 For example, PyPy 3.10 has value 70. """)
+    submit_parser.add_argument('--track', action=BooleanOptionalAction, default=True, help="""
+Whether track submission status.
+    """)
+    submit_parser.add_argument('--poll', type=float, default=10, help="""
+Polling time in seconds of watching the status (if tracking). Defaults to 10s.
+    """)
     
     args = parser.parse_args()
     logging.basicConfig(level=args.log_level)

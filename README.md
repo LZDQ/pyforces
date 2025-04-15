@@ -20,13 +20,13 @@ Codeforces added bot detection recently, and AFAIK all the existing CLI tools ar
 
 Feature requests and PRs are welcomed.
 
-Since this tool is designed for speed only, some features of [xalanq/cf-tool](https://github.com/xalanq/cf-tool) are removed. Please don't request for any features that are not speed-sensitive and already supported by Codeforces webpage itself or other GUI tools like [CCH](https://github.com/CodeforcesContestHelper/CCHv2).
+Since this tool is designed for speed only, some features of [xalanq/cf-tool](https://github.com/xalanq/cf-tool) are removed. Please don't request for any features that are not speed-sensitive or already supported by Codeforces webpage itself or other GUI tools like [CCH](https://github.com/CodeforcesContestHelper/CCHv2).
 
 ## Platforms
 
 Developed on Linux, but tests are still in progress. Will test on Windows and Mac later.
 
-If you encounter any issues on Windows or Mac, please read the error message and stacktrace first. If you believe this is a bug or unwanted feature, submit an issue with the stacktrace, or use `pyforces --log-level=debug` to get even more verbose output.
+If you encounter any issues on Windows or Mac, please read the error message and stacktrace first. If you believe this is a bug or unwanted feature, submit an issue with the stacktrace, or use `pyforces --log-level=debug <subcommand>` to get even more verbose output.
 
 ## Installation
 
@@ -39,7 +39,7 @@ See [FAQ](#FAQ) if you encounter any problems.
 * `pyforces config` to login and configure your tool. Firefox is needed for login.
 * `pyforces race 2092` to start the contest `2092`.
 * `pyforces test` in the problem folder, like `~/pyforces/contest/2092/a`, to test your solution against parsed sample testcases. Exit 0 on success, 1 in most cases and the actual non-zero exit code if Runtime Error.
-* `pyforces submit` in the problem folder, to submit your solution. Currently the CLI doesn't output anything on success, you need to refresh the submission page.
+* `pyforces submit` in the problem folder, to submit your solution. The status will refresh on the terminal with a default polling rate of 10s.
 * `pyforces parse` in the problem folder to parse sample testcases.
 * `pyforces gen` in the problem folder to generate a file from template.
 
@@ -58,7 +58,7 @@ nnoremap <F7> :w<CR>:term pyforces submit -f %<CR>
 
 Change the keys to your choices as you wish.
 
-Also, if you don't want to mess up keybindings of other buffers or projects, consider adding a filetype check:
+Also, if you don't want to mess up keybindings of other buffers or projects, consider adding a filetype check and buffer prefix:
 
 ```vim
 " test, and submit on success
@@ -69,9 +69,9 @@ au FileType cpp nnoremap <buffer><F6> :term pyforces test<CR>
 au FileType cpp nnoremap <buffer><F7> :w<CR>:term pyforces submit -f %<CR>
 
 " python support, with program_type_id=70 (PyPy 3.10)
-au FileType py nnoremap <buffer><F5> :term pyforces test -f % && pyforces submit --file=% --program-type-id=70<CR>
-au FileType py nnoremap <buffer><F6> :term pyforces test -f %<CR>
-au FileType py nnoremap <buffer><F7> :w<CR>:term pyforces submit -f % --program-type-id=70<CR>
+au FileType python nnoremap <buffer><F5> :term pyforces test -f % && pyforces submit --file=% --program-type-id=70<CR>
+au FileType python nnoremap <buffer><F6> :term pyforces test -f %<CR>
+au FileType python nnoremap <buffer><F7> :w<CR>:term pyforces submit -f % --program-type-id=70<CR>
 ```
 
 ## How to login
@@ -119,11 +119,13 @@ Since login requries you to actually login in Firefox first, this doesn't violat
 
 - [ ] Colorful CLI and tab completion for path
 - [ ] Template substitution
-- [ ] Submission status tracking
+- [x] Submission status tracking
 - [ ] Floating-point errors in tests
 - [ ] Special Judge and Interactive problems
 - [x] (Neo)vim config example
 - [ ] Sphinx documentation
 - [ ] Support for AI automatic problem solving as a library
-- [ ] Wait for my mood to become better and test on multiple platforms
+- [ ] Fix "ensure logged in" (some old cookies still work on the host url)
+- [ ] Use ws to receive status updates
+- [ ] Test on Windows & Mac
 

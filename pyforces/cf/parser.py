@@ -58,3 +58,14 @@ def parse_problem_count_from_html(html: str) -> int:
     tree = etree.parse(StringIO(html), etree.HTMLParser())
     return len(tree.xpath("//td[contains(@class, 'id')]"))
 
+def parse_last_submission_id_from_html(html: str) -> int:
+    # <tr data-submission-id="315671433" data-a="7963403939888496640" partyMemberIds=";915785;">
+    return int(re.search(r'<tr data-submission-id="([1-9][0-9]*)"', html).group(1))
+
+def parse_verdict_from_html(html: str) -> str:
+    tree = etree.parse(StringIO(html), etree.HTMLParser())
+    th_verdict1 = tree.xpath("//th[text()='Verdict']")[0]
+    row1 = th_verdict1.getparent()
+    row2 = row1.getnext()
+    th_verdict2 = row2.getchildren()[row1.index(th_verdict1)]
+    return ' '.join(s.strip() for s in th_verdict2.xpath(".//text()") if s.strip())

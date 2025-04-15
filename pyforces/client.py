@@ -5,10 +5,10 @@ import os
 from pathlib import Path
 import http.cookiejar
 from logging import getLogger
-from typing import Optional
+from typing import Literal, Optional
 
 from pyforces.cf.problem import CFProblem
-from pyforces.cf.parser import parse_countdown_from_html, parse_handle_from_html, parse_csrf_token_from_html, parse_problem_count_from_html
+from pyforces.cf.parser import parse_countdown_from_html, parse_handle_from_html, parse_csrf_token_from_html, parse_last_submission_id_from_html, parse_problem_count_from_html, parse_verdict_from_html
 from pyforces.utils import parse_firefox_http_headers
 
 logger = getLogger(__name__)
@@ -48,18 +48,24 @@ class Client(ABC):
         ...
 
     @abstractmethod
+    def parse_status(self, url_status: str) -> str:
+        ...
+        
+    @abstractmethod
     def submit(self,
                url: str,
                problem_id: str,
                program_type_id: int,
                source_file: Path,
-               ):
+               track: bool,
+               ) -> int | None:
         """
         Args:
             url:  something like https://codeforces.com/contest/2092/submit
             problem_id:  A, B, C, etc
             program_type_id:  54 for C++17
             source_file:  path to source file
+            track: whether return the submission id
         """
         ...
         
@@ -141,6 +147,7 @@ class CloudscraperClient(Client):
                problem_id: str,
                program_type_id: int,
                source_file: Path,
+               track: bool,
                ):
         if self.headers is None:
             print("You should login with HTTP headers first, see video tutorial.")
@@ -168,6 +175,27 @@ class CloudscraperClient(Client):
                 # '_tta': 961,
             }
         )
+        if 'You have submitted exactly the same code before' in resp.text:
+            print('You have submitted exactly the same code before')
+            return
+        # try:  TODO: verify the submission
+        #     assert parse_csrf_token_from_html(resp.text) == self.csrf_token
+        # except Exception as e:
+        #     logger.error("Failed to verify csrf token: %s", e)
+        #     print("Submission failed, please re-login.")
+        #     return
+
+        print(f"Submitted. {resp}")
+        if track:  # TODO: verify that the last submission id is the one just submitted
+            # return the submission id
+            assert url.endswith("submit")
+            status_url = url[:-6] + 'my'
+            resp = self.scraper.get(status_url, headers=self.headers)
+            sub_id = parse_last_submission_id_from_html(resp.text)
+            logger.info("Parsed last submission id %d", sub_id)
+            return sub_id
+
+        return
 
     def parse_testcases(self, url: str) -> list[tuple[str, str]]:
         problem = CFProblem.parse_from_url(
@@ -217,5 +245,9 @@ class CloudscraperClient(Client):
     def parse_problem_count(self, url_contest: str) -> int:
         resp = self.scraper.get(url_contest, headers=self.headers)
         return parse_problem_count_from_html(resp.text)
-        
+    
+    def parse_status(self, url_status: str) -> str:
+        resp = self.scraper.get(url_status, headers=self.headers)
+        return parse_verdict_from_html(resp.text)
+
 

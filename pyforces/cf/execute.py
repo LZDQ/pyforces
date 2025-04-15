@@ -1,5 +1,5 @@
+import os
 import subprocess
-import resource
 import re
 import time
 from logging import getLogger
@@ -58,67 +58,139 @@ class TraditionalExecutor:
         self.time_limit = time_limit
         self.memory_limit = memory_limit
 
-    def execute(self, input: TextIO, answer: TextIO) -> ExecuteResult:
-        """ Given input and answer, execute the program and compare output with answer. """
-        try:
-            # Run subprocess with provided input and timeout
-            start_time = time.perf_counter()
-            proc = subprocess.run(
+    def execute(self, input: TextIO, answer: TextIO, poll: bool) -> ExecuteResult:
+        """ Given input and answer, execute the program and compare output with answer.
+        poll: whether use psutil Popen to track usage.
+        If poll, Unix and Windows have almost the same impl except for peak memory stats.
+        If no poll, on Unix will use getrusage to get peak memory of all test cases, and
+        no memory stats on Windows. Both have no memory limit.
+        """
+        if poll:
+            logger.info("Using psutil to poll and track")
+            import psutil
+            proc = psutil.Popen(
                 self.command if self.shell else self.program,
                 shell=self.shell,
                 stdin=input,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                timeout=self.time_limit,
                 text=True,
-                check=True,
             )
-            end_time = time.perf_counter()
+            peak_memory = -1
+            user_time = 0.
+            polls = 0
+            while proc.poll() is None:
+                try:  # avoid TOCTOU
+                    user_time = proc.cpu_times().user
+                    match os.name:
+                        case 'posix':  # Linux, Mac
+                            peak_memory = max(peak_memory, proc.memory_info().rss)
+                        case 'nt':  # Windows
+                            peak_memory = proc.memory_info().peak_wset
+                except Exception as e:
+                    logger.info("Stats tracking error %s", e)
+                time.sleep(1e-5)
+                polls += 1
+                if user_time > self.time_limit:
+                    proc.kill()
+                    logger.info("Killed the program exceeding timeout")
+                    return ExecuteResult(
+                        return_code=None,
+                        timeout=True,
+                        runtime_error=None,
+                        execution_time=user_time,
+                        peak_memory=peak_memory,
+                        memory_exceeded=peak_memory>self.memory_limit,
+                        passed=False,
+                        reason=f"Time limit exceeded: {user_time} seconds",
+                    )
+            logger.info("Ran the program in %.2f seconds and %d peak memory", user_time, peak_memory)
+            logger.debug("Polled %d times", polls)
+            if proc.returncode:
+                return ExecuteResult(
+                    return_code=proc.returncode,
+                    timeout=False,
+                    runtime_error=True,
+                    execution_time=user_time,
+                    peak_memory=peak_memory,
+                    memory_exceeded=peak_memory>self.memory_limit,
+                    passed=False,
+                    reason=f"Runtime error, exit code {proc.returncode}",
+                )
 
-            # After execution, capture resource usage (peak memory)
-            usage = resource.getrusage(resource.RUSAGE_CHILDREN)
-            peak_memory = usage.ru_maxrss * 1024  # ru_maxrss returns KB on Linux
-
-            passed, reason = compare_output(proc.stdout, answer.read())
-
+            passed, reason = compare_output(proc.stdout.read(), answer.read())
             return ExecuteResult(
                 return_code=proc.returncode,
                 timeout=False,
                 runtime_error=False,
-                execution_time=end_time - start_time,
+                execution_time=user_time,
                 peak_memory=peak_memory,
-                memory_exceeded=peak_memory > self.memory_limit,
+                memory_exceeded=peak_memory>self.memory_limit,
                 passed=passed,
                 reason=reason,
             )
+        
+        else:  # no poll
+            logger.info("Not polling, using subprocess.run")
+            try:
+                # Run subprocess with provided input and timeout
+                start_time = time.perf_counter()
+                proc = subprocess.run(
+                    self.command if self.shell else self.program,
+                    shell=self.shell,
+                    stdin=input,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    timeout=self.time_limit,
+                    text=True,
+                    check=True,
+                )
+                end_time = time.perf_counter()
 
-        except subprocess.TimeoutExpired as e:
-            end_time = time.perf_counter()
-            return ExecuteResult(
-                return_code=None,
-                timeout=True,
-                runtime_error=None,
-                execution_time=end_time - start_time,
-                peak_memory=None,
-                memory_exceeded=None,
-                passed=False,
-                reason=f"Time limit exceeded: {end_time - start_time} seconds",
-            )
+                # # After execution, capture resource usage (peak memory)
+                # usage = resource.getrusage(resource.RUSAGE_CHILDREN)
+                # peak_memory = usage.ru_maxrss * 1024  # ru_maxrss returns KB on Linux
 
-        except subprocess.CalledProcessError as e:
-            # Non-zero exit code encountered
-            end_time = time.perf_counter()
-            usage = resource.getrusage(resource.RUSAGE_CHILDREN)
-            peak_memory = usage.ru_maxrss * 1024
+                passed, reason = compare_output(proc.stdout, answer.read())
 
-            return ExecuteResult(
-                return_code=e.returncode,
-                timeout=False,
-                runtime_error=True,
-                execution_time=end_time - start_time,
-                peak_memory=peak_memory,
-                memory_exceeded=peak_memory > self.memory_limit,
-                passed=False,
-                reason='Runtime error' + (': ' + e.stderr.decode().strip() if e.stderr else ''),
-            )
+                return ExecuteResult(
+                    return_code=proc.returncode,
+                    timeout=False,
+                    runtime_error=False,
+                    execution_time=end_time-start_time,
+                    peak_memory=None,
+                    memory_exceeded=None,
+                    passed=passed,
+                    reason=reason,
+                )
+
+            except subprocess.TimeoutExpired as e:
+                end_time = time.perf_counter()
+                return ExecuteResult(
+                    return_code=None,
+                    timeout=True,
+                    runtime_error=None,
+                    execution_time=end_time-start_time,
+                    peak_memory=None,
+                    memory_exceeded=None,
+                    passed=False,
+                    reason=f"Time limit exceeded: {end_time - start_time} seconds",
+                )
+
+            except subprocess.CalledProcessError as e:
+                # Non-zero exit code encountered
+                end_time = time.perf_counter()
+                # usage = resource.getrusage(resource.RUSAGE_CHILDREN)
+                # peak_memory = usage.ru_maxrss * 1024
+
+                return ExecuteResult(
+                    return_code=e.returncode,
+                    timeout=False,
+                    runtime_error=True,
+                    execution_time=end_time - start_time,
+                    peak_memory=None,
+                    memory_exceeded=None,
+                    passed=False,
+                    reason=f"Runtime error, exit code {e.returncode}" + (': ' + e.stderr.decode().strip() if e.stderr else ''),
+                )
 
