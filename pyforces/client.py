@@ -8,7 +8,7 @@ from logging import getLogger
 from typing import Literal, Optional
 
 from pyforces.cf.problem import CFProblem
-from pyforces.cf.parser import parse_countdown_from_html, parse_handle_from_html, parse_csrf_token_from_html, parse_last_submission_id_from_html, parse_problem_count_from_html, parse_verdict_from_html
+from pyforces.cf.parser import parse_countdown_from_html, parse_handle_from_html, parse_csrf_token_from_html, parse_last_submission_id_from_html, parse_problem_count_from_html, parse_verdict_from_html, parse_ws_cc_pc_from_html
 from pyforces.utils import parse_firefox_http_headers
 
 logger = getLogger(__name__)
@@ -187,13 +187,14 @@ class CloudscraperClient(Client):
 
         print(f"Submitted. {resp}")
         if track:  # TODO: verify that the last submission id is the one just submitted
-            # return the submission id
+            # return the submission id along with cc and pc (for websocket tracking)
             assert url.endswith("submit")
             status_url = url[:-6] + 'my'
             resp = self.scraper.get(status_url, headers=self.headers)
             sub_id = parse_last_submission_id_from_html(resp.text)
+            cc, pc = parse_ws_cc_pc_from_html(resp.text)
             logger.info("Parsed last submission id %d", sub_id)
-            return sub_id
+            return sub_id, cc, pc
 
         return
 

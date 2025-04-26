@@ -58,8 +58,8 @@ For example, PyPy 3.10 has value 70. """)
     submit_parser.add_argument('--track', action=BooleanOptionalAction, default=True, help="""
 Whether track submission status.
     """)
-    submit_parser.add_argument('--poll', type=float, default=10, help="""
-Polling time in seconds of watching the status (if tracking). Defaults to 10s.
+    submit_parser.add_argument('--poll', type=float, required=False, help="""
+If set, use polling instead of websocket to receive updates.
     """)
     
     args = parser.parse_args()

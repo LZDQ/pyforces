@@ -82,7 +82,9 @@ def do_test(args: Namespace):
         try:
             import resource
             usage = resource.getrusage(resource.RUSAGE_CHILDREN)
-            peak_memory = usage.ru_maxrss * 1024  # KB to B
+            peak_memory = usage.ru_maxrss
+            if sys.platform == 'linux':
+                peak_memory *= 1024  # on Linux it's KB
             print(f"Peak memory usage <= {peak_memory/1024/1024:.2f}MB")
         except Exception as e:
             logger.warning("Failed to fetch maxrss: %s", e)

@@ -69,3 +69,13 @@ def parse_verdict_from_html(html: str) -> str:
     row2 = row1.getnext()
     th_verdict2 = row2.getchildren()[row1.index(th_verdict1)]
     return ' '.join(s.strip() for s in th_verdict2.xpath(".//text()") if s.strip())
+
+def parse_ws_cc_pc_from_html(html: str) -> tuple[str, str]:
+    """
+    <meta name="cc" content="<some-hex>"/>
+    <meta name="pc" content="<some-hex>"/>
+    """
+    return re.search(r'<meta name="cc" content="([0-9a-f]+)"/>', html).group(1), \
+        re.search(r'<meta name="pc" content="([0-9a-f]+)"/>', html).group(1)
+
+

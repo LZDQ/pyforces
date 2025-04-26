@@ -117,15 +117,12 @@ Since login requries you to actually login in Firefox first, this doesn't violat
 
 ## TODO
 
-- [ ] Colorful CLI and tab completion for path
-- [ ] Template substitution
-- [x] Submission status tracking
 - [ ] Floating-point errors in tests
 - [ ] Special Judge and Interactive problems
 - [x] (Neo)vim config example
 - [ ] Sphinx documentation
 - [ ] Support for AI automatic problem solving as a library
 - [ ] Fix "ensure logged in" (some old cookies still work on the host url)
-- [ ] Use ws to receive status updates
-- [ ] Test on Windows & Mac
+- [x] Use websocket to receive status updates
+- [x] Test on Windows & Mac
 
