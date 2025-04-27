@@ -1,5 +1,5 @@
 [project]
-name = "pyforces"
+name = "pyforces-tool"
 description = "Yet another Codeforces CLI tool"
 dynamic = ["version"]
 dependencies = [
@@ -21,6 +21,10 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools_scm]
 version_scheme = "no-guess-dev"  # uses tag if present; else commit hash
 local_scheme = "node-and-date"   # makes version unique per commit
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pyforces*"]
 
 [project.scripts]
 pyforces = "pyforces.__main__:main"
