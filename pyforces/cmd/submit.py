@@ -37,6 +37,7 @@ def do_submit(cfg: Config, cln: Client, args: Namespace):
         }[cfg.submit_cpp_std]
 
     contest_id, problem_id = get_current_contest_problem_id()
+    submit_time = time.time()
     sub_info = cln.submit(
         url=f"{cfg.host}/contest/{contest_id}/submit",
         problem_id=problem_id,
@@ -50,28 +51,29 @@ def do_submit(cfg: Config, cln: Client, args: Namespace):
             return
         sub_id, cc, pc = sub_info
         text = f"Watching submission {sub_id}"
-        text += '\n    {status}\n'
+        print(text)
+        text += '\n    {status}'
         if args.poll is None:  # use websocket
             url = 'wss' if cfg.host.startswith('https') else 'ws'
             url += '://pubsub.' + cfg.host.split('://', 1)[1]
             url += f"/ws/s_{pc}/s_{cc}"
-            url += f"?_={int(time.time()*1000)}&tag=&time=&eventid="
+            url += f"?_={int(submit_time*1000)}&tag=&time=&eventid="
 
             def on_message(ws: WebSocketApp, message):
                 try:
                     logger.info("Received websocket %s", message)
-                    data = json.loads(json.loads(message)['text'])
+                    data = json.loads(json.loads(message)['text'])['d']
                 except (json.JSONDecodeError, KeyError) as e:
                     logger.error("ws decode error", exc_info=e)
                 if data[1] != sub_id or data[2] != contest_id:
                     return
                 status = data[6]
                 test_id = data[8]
-                if status == 'TESTING':
+                if test_id:
                     status += f" {test_id}"
                 os.system('clear' if os.name == 'posix' else 'cls')
                 print(text.format(status=status))
-                if not status.startswith(['TESTING', 'SUBMITTED']):
+                if not status.startswith(('TESTING', 'SUBMITTED')):
                     # the list is in the drop-down menu of status filter
                     # maybe SUBMITTED is not required?
                     ws.close()
@@ -85,11 +87,11 @@ def do_submit(cfg: Config, cln: Client, args: Namespace):
             def on_open(ws):
                 logger.info("Connected to the server!")
                 # Subscribe to channels (adjust based on server requirements)
-                ws.send(json.dumps({"subscribe": "global-channel"}))
-                ws.send(json.dumps({"subscribe": "user-channel"}))
+                # ws.send(json.dumps({"subscribe": "global-channel"}))
+                # ws.send(json.dumps({"subscribe": "user-channel"}))
                 ws.send(json.dumps({"subscribe": "contest-channel"}))
-                ws.send(json.dumps({"subscribe": "participant-channel"}))
-                ws.send(json.dumps({"subscribe": "talk-channel"}))
+                # ws.send(json.dumps({"subscribe": "participant-channel"}))
+                # ws.send(json.dumps({"subscribe": "talk-channel"}))
 
             ws = WebSocketApp(
                 url,

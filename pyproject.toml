@@ -9,7 +9,7 @@ dependencies = [
 	"psutil",
 	"websocket-client",
 ]
-requires-python = ">= 3.10"
+requires-python = ">=3.10"
 license = "WTFPL"
 readme = "README.md"
 authors = [ {name = "Dennis Liu", email = "1486701401@qq.com"} ]
@@ -24,3 +24,6 @@ local_scheme = "node-and-date"   # makes version unique per commit
 
 [project.scripts]
 pyforces = "pyforces.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/LZDQ/pyforces"

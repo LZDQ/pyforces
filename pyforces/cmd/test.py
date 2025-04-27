@@ -29,9 +29,10 @@ def do_test(args: Namespace):
         executable = str(source_file.parent / source_file.stem)
         if os.name == 'nt':  # Windows
             executable += '.exe'
+        executable = Path(executable).absolute()
 
         logger.info("Using executable %s", executable)
-        if not Path(executable).is_file():
+        if not executable.is_file():
             print(f"Executable {executable} not found, please compile first")
             return
         executor = TraditionalExecutor(
