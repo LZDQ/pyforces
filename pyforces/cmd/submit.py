@@ -109,13 +109,4 @@ def do_submit(cfg: Config, cln: Client, args: Namespace):
                 if not status.startswith(["Running", "Pending"]):
                     break
                 time.sleep(args.poll)
-        print(f"Watching submission {sub_id}")
-        url = f"{cfg.host}/contest/{contest_id}/submission/{sub_id}"
-        while True:
-            status = cln.parse_status(url)
-            os.system('clear' if os.name == 'posix' else 'cls')
-            print(status)
-            if not status.startswith(("Running", "Pending")):
-                break
-            time.sleep(args.poll)
 
