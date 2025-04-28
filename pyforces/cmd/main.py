@@ -19,10 +19,10 @@ Welcome to pyforces! Parse, test, submit, make you blazingly fast!
     """.strip()
     parser = ArgumentParser(prog='pyforces', description=description)
     parser.add_argument('--log-level', type=str,
-                        default=os.environ.get('LOGLEVEL', 'WARNING'),
+                        default=os.environ.get('LOG_LEVEL', 'WARNING'),
                         help="""
 Configure the logging level (INFO, ERROR, etc.). 
-Also controlled by environment variable LOGLEVEL, but argument takes precedence.
+Also controlled by environment variable LOG_LEVEL, but argument takes precedence.
                         """,)
     subparsers = parser.add_subparsers(dest='subcommand', required=True)
 
