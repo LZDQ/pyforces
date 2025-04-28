@@ -6,7 +6,7 @@
 
 [中文](README-zh.md)
 
-Yet another command-line interface tool for [Codeforces](https://codeforces.com). Rebirth of [xalanq/cf-tool](https://github.com/xalanq/cf-tool).
+Yet another command-line interface tool for [Codeforces](https://codeforces.com) designed for (neo)vim competitors. Rebirth of [xalanq/cf-tool](https://github.com/xalanq/cf-tool).
 
 ## Why another CLI tool?
 
@@ -32,7 +32,7 @@ If you encounter any issues on Windows or Mac, please read the error message and
 
 ## Installation
 
-`pip install git+https://github.com/LZDQ/pyforces.git`
+`pip install pyforces-cli`
 
 See [FAQ](#FAQ) if you encounter any problems.
 

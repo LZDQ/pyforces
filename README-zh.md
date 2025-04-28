@@ -6,7 +6,7 @@
 
 [English](README.md)
 
-[Codeforces](https://codeforces.com) 命令行工具，新的 [xalanq/cf-tool](https://github.com/xalanq/cf-tool)。
+为 (neo)vim 用户设计的 [Codeforces](https://codeforces.com) 命令行工具，新的 [xalanq/cf-tool](https://github.com/xalanq/cf-tool)。
 
 ## 为什么需要另一个命令行工具？
 
