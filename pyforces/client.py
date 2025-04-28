@@ -190,11 +190,19 @@ class CloudscraperClient(Client):
             # return the submission id along with cc and pc (for websocket tracking)
             assert url.endswith("submit")
             status_url = url[:-6] + 'my'
-            resp = self.scraper.get(status_url, headers=self.headers)
-            sub_id = parse_last_submission_id_from_html(resp.text)
-            cc, pc = parse_ws_cc_pc_from_html(resp.text)
-            logger.info("Parsed last submission id %d", sub_id)
-            return sub_id, cc, pc
+            for t in range(3):
+                resp = self.scraper.get(status_url, headers=self.headers)
+                try:
+                    sub_id = parse_last_submission_id_from_html(resp.text)
+                    cc, pc = parse_ws_cc_pc_from_html(resp.text)
+                except AttributeError:
+                    print("Failed to get last submission id, retrying...")
+            try:
+                logger.info("Parsed last submission id %d", sub_id)
+                return sub_id, cc, pc
+            except:
+                logger.error("Failed to get last submission id")
+                return
 
         return
 

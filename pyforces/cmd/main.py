@@ -18,8 +18,12 @@ def main():
 Welcome to pyforces! Parse, test, submit, make you blazingly fast!
     """.strip()
     parser = ArgumentParser(prog='pyforces', description=description)
-    parser.add_argument('--log-level', type=lambda x: getattr(logging, x.upper()),
-                        default=logging.WARNING, help="Configure the logging level (INFO, ERROR, etc.)",)
+    parser.add_argument('--log-level', type=str,
+                        default=os.environ.get('LOGLEVEL', 'WARNING'),
+                        help="""
+Configure the logging level (INFO, ERROR, etc.). 
+Also controlled by environment variable LOGLEVEL, but argument takes precedence.
+                        """,)
     subparsers = parser.add_subparsers(dest='subcommand', required=True)
 
     # config
@@ -63,7 +67,7 @@ If set, use polling instead of websocket to receive updates.
     """)
     
     args = parser.parse_args()
-    logging.basicConfig(level=args.log_level)
+    logging.basicConfig(level=args.log_level.upper())
 
     # Ensure dir ~/.pyforces exists
     root_cfg = Path.home() / '.pyforces'

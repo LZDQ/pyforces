@@ -83,9 +83,9 @@ class Config:
             host=cfg.get('host', 'https://codeforces.com'),
             root_name=cfg.get('root_name', 'pyforces'),
             submit_cpp_std=cfg.get('submit_cpp_std', 'cpp17'),
-            race_pre_sec=cfg.get('race_pre_sec', 1),
+            race_pre_sec=cfg.get('race_pre_sec', 0),
             race_open_url=cfg.get('race_open_url', '/problems'),
-            race_delay_parse=cfg.get('race_delay_parse', 0),
+            race_delay_parse=cfg.get('race_delay_parse', 3),
             _config_file=path,
         )
 
