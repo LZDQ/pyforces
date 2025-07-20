@@ -13,21 +13,17 @@ def parse_testcases_from_html(html: str) -> list[tuple[str, str]]:
     if not sample_divs:
         logger.error("No sample-test divs found")
 
-    for sample_div in sample_divs:
-        input_div = sample_div[0]
-        pre_div = input_div.xpath("./pre")[0]
-        subcase_divs = pre_div.xpath("./div[contains(@class, 'test-example-line')]")
-        if subcase_divs:
-            # (Modern) multiple subcases in one test
-            input_text = '\n'.join(subcase_div.text.strip() for subcase_div in subcase_divs)
-        else:
-            # (Old) test without interleaving color
-            input_text = pre_div.text.strip()
-            
-        output_div = sample_div[1]
-        pre_div = output_div.xpath("./pre")[0]
-        answer_text = pre_div.text.strip()
-        testcases.append((input_text + '\n', answer_text + '\n'))
+    for sample_div in sample_divs:  # There is only one 'sample-test' but will keep the loop
+        for input_div, output_div in \
+                zip(sample_div.xpath("./div[@class='input']"),
+                    sample_div.xpath("./div[@class='output']")):
+            input_text_nodes = input_div.xpath("./pre//text()")
+            input_text = '\n'.join(node.strip() for node in input_text_nodes if node.strip())
+
+            answer_text_nodes = output_div.xpath("./pre//text()")
+            answer_text = '\n'.join(node.strip() for node in answer_text_nodes if node.strip())
+
+            testcases.append((input_text + '\n', answer_text + '\n'))
 
     return testcases
 
