@@ -20,7 +20,7 @@ def do_race(cfg: Config, cln: Client, contest_id: int):
     countdown = cln.parse_countdown(url_contest)
     if countdown:
         h, m, s = countdown
-        countdown_bar(mins=h*60+m, secs=s-cfg.race_pre_sec)
+        countdown_bar(mins=h*60+m, secs=s)
 
     if cfg.race_open_url:
         webbrowser.open(url_contest + cfg.race_open_url)

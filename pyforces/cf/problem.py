@@ -33,7 +33,7 @@ class CFProblem:
             url: something like https://codeforces.com/contest/2092/problem/A
             web_parser: a function that accepts a url string and returns the HTML.
 
-        Currently only the testcases is parsed, others are default values
+        Currently only parse the testcases, others are default values
         """
         testcases = parse_testcases_from_html(web_parser(url))
         return cls(

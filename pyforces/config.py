@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import json
 import os
 import shutil
@@ -26,6 +27,7 @@ class CodeTemplate:
         shutil.copy(self.path, dest)
 
 
+@dataclass
 class Config:
     """
     The config class. Use `Config.from_file` to init a new one.
@@ -35,33 +37,21 @@ class Config:
         default_template: index of default template, -1 if not set
         gen_after_parse: whether gen a template after parse
         host: codeforces host url
-        root_name: the folder name under ~/, default 'pyforces'
+        root_name: the folder name under ~/, default 'cf'
         submit_cpp_std: preferred cpp version, could be cpp17, cpp20, cpp23
+        race_open_url: url suffix to open in browser, default '/problems'
+        race_delay_parse: seconds to delay parse after the race start (to avoid network congestion)
     """
     
-    def __init__(
-        self,
-        templates: list[CodeTemplate],
-        default_template: int,
-        gen_after_parse: bool,
-        host: str,
-        root_name: str,
-        submit_cpp_std: str,
-        race_pre_sec: int,
-        race_open_url: str,
-        race_delay_parse: int,
-        _config_file: Path,
-    ):
-        self.templates = templates
-        self.default_template = default_template
-        self.gen_after_parse = gen_after_parse
-        self.host = host
-        self.root_name = root_name
-        self.submit_cpp_std = submit_cpp_std
-        self.race_pre_sec = race_pre_sec
-        self.race_open_url = race_open_url
-        self.race_delay_parse = race_delay_parse
-        self._config_file = _config_file
+    templates: list[CodeTemplate]
+    default_template: int
+    gen_after_parse: bool
+    host: str
+    root_name: str
+    submit_cpp_std: str
+    race_open_url: str
+    race_delay_parse: int
+    _config_file: Path
 
     @classmethod
     def from_file(cls, path: Path):
@@ -81,9 +71,8 @@ class Config:
             default_template=cfg.get('default_template', -1),
             gen_after_parse=cfg.get('gen_after_parse', True),
             host=cfg.get('host', 'https://codeforces.com'),
-            root_name=cfg.get('root_name', 'pyforces'),
+            root_name=cfg.get('root_name', 'cf'),
             submit_cpp_std=cfg.get('submit_cpp_std', 'cpp17'),
-            race_pre_sec=cfg.get('race_pre_sec', 0),
             race_open_url=cfg.get('race_open_url', '/problems'),
             race_delay_parse=cfg.get('race_delay_parse', 3),
             _config_file=path,
@@ -98,7 +87,6 @@ class Config:
             'host': self.host,
             'root_name': self.root_name,
             'submit_cpp_std': self.submit_cpp_std,
-            'race_pre_sec': self.race_pre_sec,
             'race_open_url': self.race_open_url,
             'race_delay_parse': self.race_delay_parse,
         }
