@@ -7,7 +7,7 @@ from countdown.countdown import time
 from websocket import WebSocketApp
 from pyforces.client import Client
 from pyforces.config import Config
-from pyforces.utils import get_current_contest_problem_id, get_current_cpp_file
+from pyforces.utils import contest_type_from_id, get_current_contest_type_id_problem_id, get_current_cpp_file
 import random
 from logging import getLogger
 
@@ -36,7 +36,7 @@ def do_submit(cfg: Config, cln: Client, args: Namespace):
             'cpp23': 91,
         }[cfg.submit_cpp_std]
 
-    contest_id, problem_id = get_current_contest_problem_id()
+    contest_type, contest_id, problem_id = get_current_contest_type_id_problem_id()
     submit_time = time.time()
     sub_info = cln.submit(
         url=f"{cfg.host}/contest/{contest_id}/submit",

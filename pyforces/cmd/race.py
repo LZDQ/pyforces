@@ -9,6 +9,8 @@ import webbrowser
 from string import ascii_uppercase
 from logging import getLogger
 
+from pyforces.utils import contest_type_from_id
+
 logger = getLogger(__name__)
 
 
@@ -16,7 +18,8 @@ def do_race(cfg: Config, cln: Client, contest_id: int):
     if cfg.gen_after_parse and cfg.default_template == -1:
         logger.warning("No default template set")
 
-    url_contest = f"{cfg.host}/contest/{contest_id}"
+    contest_type = contest_type_from_id(contest_id)
+    url_contest = f"{cfg.host}/{contest_type}/{contest_id}"
     countdown = cln.parse_countdown(url_contest)
     if countdown:
         h, m, s = countdown
@@ -25,7 +28,7 @@ def do_race(cfg: Config, cln: Client, contest_id: int):
     if cfg.race_open_url:
         webbrowser.open(url_contest + cfg.race_open_url)
 
-    contest_path = Path.home() / cfg.root_name / 'contest' / str(contest_id)
+    contest_path = Path.home() / cfg.root_name / contest_type / str(contest_id)
     contest_path.mkdir(exist_ok=True, parents=True)
 
     if cfg.race_delay_parse:
@@ -46,11 +49,5 @@ def do_race(cfg: Config, cln: Client, contest_id: int):
             # Fallback: if parse failed, still generate template
             print(f"Couldn't parse sample testcases of {problem_idx}")
             if cfg.gen_after_parse:
-                try:
-                    do_gen(cfg)
-                except:
-                    print(f"Couldn't generate template for {problem_idx}")
-
-
-        
+                do_gen(cfg)
 

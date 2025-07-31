@@ -38,13 +38,16 @@ def parse_firefox_http_headers(headers: dict) -> dict[str, str]:
     headers['Accept-Encoding'] = 'gzip, deflate'
     return headers
 
-def get_current_contest_problem_id() -> tuple[int, str]:
+def get_current_contest_type_id_problem_id() -> tuple[str, int, str]:
+    """ contest_type, contest_id, problem_id """
     parts = Path.cwd().parts
     problem_id = parts[-1].upper()
     assert len(problem_id) == 1
     assert problem_id.isalpha()
     contest_id = int(parts[-2])
-    return contest_id, problem_id
+    contest_type = parts[-3]
+    assert contest_type in ['contest', 'gym']
+    return contest_type, contest_id, problem_id
 
 def get_current_cpp_file() -> Path:
     files = glob.glob("*.cpp")
@@ -55,3 +58,10 @@ def get_current_cpp_file() -> Path:
         print(f"Multiple source files found: {' '.join(files)}")
         return
     return Path(files[0]).absolute()
+
+def from_list1(l: list):
+    assert len(l) == 1, 'This list must have exactly one element'
+    return l[0]
+
+def contest_type_from_id(x: int):
+    return 'contest' if x<100000 else 'gym'

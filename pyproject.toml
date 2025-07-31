@@ -8,6 +8,7 @@ dependencies = [
 	"countdown-timer",
 	"psutil",
 	"websocket-client",
+	"markdownify",
 ]
 requires-python = ">=3.10"
 license = "WTFPL"

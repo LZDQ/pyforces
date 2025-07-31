@@ -19,6 +19,7 @@ Codeforces added bot detection recently, and AFAIK all the existing CLI tools ar
 * Submit code.
 * Generate code from templates.
 * Start a contest (parse sample testcases for all problems and optionally gen template).
+* Gym support.
 
 Feature requests and PRs are welcomed.
 
@@ -26,7 +27,7 @@ Since this tool is designed for speed only, some features of [xalanq/cf-tool](ht
 
 ## Platforms
 
-Developed on Linux, tested on Linux, Mac and Windows.
+Developed on Linux; Tested on Linux, Mac and Windows.
 
 If you encounter any issues on Windows or Mac, please read the error message and stacktrace first. If you believe this is a bug or unwanted feature, submit an issue with the stacktrace, or use `pyforces --log-level=debug <subcommand> [sub-arguments]` to get even more verbose output.
 
@@ -38,12 +39,27 @@ See [FAQ](#FAQ) if you encounter any problems.
 
 ## Usage
 
-* `pyforces config` to login and configure your tool. Firefox is needed for login.
-* `pyforces race 2092` to start the contest `2092`.
-* `pyforces test` in the problem folder, like `~/pyforces/contest/2092/a`, to test your solution against parsed sample testcases. Note that you need to first compile it yourself, the executable filename is derived from the cpp filename.
+* `pyforces config` to login and configure your tool. Firefox is needed for login. See [How to login](#How-to-login) below.
+* `pyforces race 2092` to start the contest `2092`. Same for gym (numbers >= 100000 are gyms).
+* `pyforces test` in the problem directory, like `~/cf/contest/2092/a`, to test your solution against parsed sample testcases. Note that you need to first compile it yourself, the executable filename is derived from the cpp filename.
 * `pyforces submit` in the problem folder, to submit your solution.
 * `pyforces parse` in the problem folder to parse sample testcases.
 * `pyforces gen` in the problem folder to generate a file from template.
+
+## How to login
+
+First, you need to login to codeforces in Firefox. If you don't use Firefox, either use it once or find a way (like a plugin?) to configure your `~/.pyforces/headers.txt` (If you don't know what is `~`, try searching `home directory`).
+
+Then, follow this video to configure your HTTP header:
+
+
+https://github.com/user-attachments/assets/cac3b09a-1809-4de3-bc9a-53d8d9df8c05
+
+Note: in the video the root name has been configured to `cf` not default `pyforces`.
+
+If the method in the video fails, check [FAQ](#FAQ) first. If that doesn't help, you can manually paste your headers to `~/.pyforces/headers.txt`. If you use Firefox, directly pasting the "(Copy All)" to `~/.pyforces/headers.txt` is okay. If you use other browsers, check [this](example/headers.txt) example `headers.txt`.
+
+**Warning**: the `ensure logged in` option in config doesn't actually ensure you are logged in. It is recommended to paste your headers before each contest.
 
 ## Vim config
 
@@ -75,21 +91,6 @@ au FileType python nnoremap <buffer><F5> :w<CR>:term pyforces test -f % && pyfor
 au FileType python nnoremap <buffer><F6> :w<CR>:term pyforces test -f %<CR>
 au FileType python nnoremap <buffer><F7> :w<CR>:term pyforces submit -f % --program-type-id=70<CR>
 ```
-
-## How to login
-
-First, you need to login to codeforces in Firefox. If you don't use Firefox, either use it once or find a way (like a plugin?) to configure your `~/.pyforces/headers.txt` (If you don't know what is `~`, try searching `home directory`).
-
-Then, follow this video to configure your HTTP header:
-
-
-https://github.com/user-attachments/assets/cac3b09a-1809-4de3-bc9a-53d8d9df8c05
-
-Note: in the video the root name has been configured to `cf` not default `pyforces`.
-
-If the method in the video fails, check [FAQ](#FAQ) first. If that doesn't help, you can manually paste your headers to `~/.pyforces/headers.txt`. If you use Firefox, directly pasting the "(Copy All)" to `~/.pyforces/headers.txt` is okay. If you use other browsers, check [this](example/headers.txt) example `headers.txt`.
-
-Note: the `ensure logged in` option in config doesn't actually ensure you are logged in. It is recommended to paste your headers before each contest.
 
 ## FAQ
 
