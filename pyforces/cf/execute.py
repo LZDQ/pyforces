@@ -3,7 +3,6 @@ import subprocess
 import re
 import time
 from logging import getLogger
-from pathlib import Path
 from typing import TextIO
 from dataclasses import dataclass
 
@@ -33,28 +32,32 @@ def compare_output(output: str, answer: str) -> tuple[bool, str]:
 @dataclass
 class ExecuteResult:
     return_code: int
-    timeout: bool
-    runtime_error: bool
+    timeout: bool  # TLE
+    runtime_error: bool  # RE
+    memory_exceeded: bool  # MLE
     execution_time: float  # in seconds
     peak_memory: int  # in bytes
-    memory_exceeded: bool
     passed: bool
-    reason: str
+    reason: str  # useful if failed
 
 class TraditionalExecutor:
     
     def __init__(
         self,
-        program_or_command: Path | str,
-        shell: bool,
-        time_limit: float,  # in seconds
-        memory_limit: int,  # in bytes
+        args: str | list[str] | None = None,
+        shell: str | None = None,
+        time_limit: float = 2.0,  # in seconds
+        memory_limit: int = 512*1024*1024,  # in bytes
     ):
-        self.shell = shell
-        if self.shell:
-            self.command = program_or_command
+        if args:
+            assert not shell, "Cannot pass both args and shell to TraditionalExecutor"
+            self.args = args
+            self.is_shell = False
         else:
-            self.program = program_or_command
+            assert shell, "Must pass either args or shell to TraditionalExecutor"
+            self.args = shell
+            self.is_shell = True
+
         self.time_limit = time_limit
         self.memory_limit = memory_limit
 
@@ -69,8 +72,8 @@ class TraditionalExecutor:
             logger.info("Using psutil to poll and track")
             import psutil
             proc = psutil.Popen(
-                self.command if self.shell else self.program,
-                shell=self.shell,
+                self.args,
+                shell=self.is_shell,
                 stdin=input,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -91,16 +94,16 @@ class TraditionalExecutor:
                     logger.info("Stats tracking error %s", e)
                 time.sleep(1e-5)
                 polls += 1
-                if user_time > self.time_limit:
+                if user_time > self.time_limit * 2:  # Allows it to run double time_limit
                     proc.kill()
-                    logger.info("Killed the program exceeding timeout")
+                    logger.info("Killed the program exceeding double timeout")
                     return ExecuteResult(
                         return_code=None,
                         timeout=True,
                         runtime_error=None,
                         execution_time=user_time,
-                        peak_memory=peak_memory,
                         memory_exceeded=peak_memory>self.memory_limit,
+                        peak_memory=peak_memory,
                         passed=False,
                         reason=f"Time limit exceeded: {user_time} seconds",
                     )
@@ -109,13 +112,25 @@ class TraditionalExecutor:
             if proc.returncode:
                 return ExecuteResult(
                     return_code=proc.returncode,
-                    timeout=False,
+                    timeout=user_time>self.time_limit,
                     runtime_error=True,
+                    memory_exceeded=peak_memory>self.memory_limit,
                     execution_time=user_time,
                     peak_memory=peak_memory,
-                    memory_exceeded=peak_memory>self.memory_limit,
                     passed=False,
-                    reason=f"Runtime error, exit code {proc.returncode}",
+                    reason=f"Runtime error, exit code {proc.returncode}" + \
+                    (': ' + proc.stderr.decode().strip() if proc.stderr else ''),
+                )
+            if user_time > self.time_limit:
+                return ExecuteResult(
+                    return_code=proc.returncode,
+                    timeout=True,
+                    runtime_error=False,
+                    memory_exceeded=peak_memory>self.memory_limit,
+                    execution_time=user_time,
+                    peak_memory=peak_memory,
+                    passed=False,
+                    reason=f"Time limit exceeded: {user_time} seconds",
                 )
 
             passed, reason = compare_output(proc.stdout.read(), answer.read())
@@ -136,8 +151,8 @@ class TraditionalExecutor:
                 # Run subprocess with provided input and timeout
                 start_time = time.perf_counter()
                 proc = subprocess.run(
-                    self.command if self.shell else self.program,
-                    shell=self.shell,
+                    self.args,
+                    shell=self.is_shell,
                     stdin=input,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
@@ -187,10 +202,11 @@ class TraditionalExecutor:
                     return_code=e.returncode,
                     timeout=False,
                     runtime_error=True,
-                    execution_time=end_time - start_time,
-                    peak_memory=None,
                     memory_exceeded=None,
+                    execution_time=end_time-start_time,
+                    peak_memory=None,
                     passed=False,
-                    reason=f"Runtime error, exit code {e.returncode}" + (': ' + e.stderr.decode().strip() if e.stderr else ''),
+                    reason=f"Runtime error, exit code {e.returncode}" + \
+                    (': ' + e.stderr.decode().strip() if e.stderr else ''),
                 )
 

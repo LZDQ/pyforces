@@ -1,14 +1,12 @@
 from argparse import Namespace
 import json
 import os
-from pathlib import Path
 
 from countdown.countdown import time
 from websocket import WebSocketApp
 from pyforces.client import Client
 from pyforces.config import Config
-from pyforces.utils import contest_type_from_id, get_current_contest_type_id_problem_id, get_current_cpp_file
-import random
+from pyforces.utils import get_current_contest_type_id_problem_id, get_current_cpp_file
 from logging import getLogger
 
 logger = getLogger(__name__)
@@ -16,7 +14,7 @@ logger = getLogger(__name__)
 
 def do_submit(cfg: Config, cln: Client, args: Namespace):
     """ (Non-interactive) submit.
-    Normal C++ users don't need to pass any arguments.
+    Normal C++ users don't need to pass any arguments. Will use directory's name + ".cpp"
     Other languages users need to pass both --file and --program-type-id.
     """
     if args.file:
@@ -39,7 +37,7 @@ def do_submit(cfg: Config, cln: Client, args: Namespace):
     contest_type, contest_id, problem_id = get_current_contest_type_id_problem_id()
     submit_time = time.time()
     sub_info = cln.submit(
-        url=f"{cfg.host}/contest/{contest_id}/submit",
+        url=f"{cfg.host}/{contest_type}/{contest_id}/submit",
         problem_id=problem_id,
         program_type_id=program_type_id,
         source_file=source_file,

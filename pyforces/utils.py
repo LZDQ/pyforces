@@ -1,4 +1,3 @@
-import glob
 from pathlib import Path
 from typing import Optional
 from logging import getLogger
@@ -49,15 +48,10 @@ def get_current_contest_type_id_problem_id() -> tuple[str, int, str]:
     assert contest_type in ['contest', 'gym']
     return contest_type, contest_id, problem_id
 
-def get_current_cpp_file() -> Path:
-    files = glob.glob("*.cpp")
-    if not files:
-        print("Cannot find any cpp file")
-        return
-    if len(files) > 1:
-        print(f"Multiple source files found: {' '.join(files)}")
-        return
-    return Path(files[0]).absolute()
+def get_current_cpp_file() -> Path | None:
+    file = Path(Path.cwd().name + '.cpp')
+    if file.is_file():
+        return file
 
 def from_list1(l: list):
     assert len(l) == 1, 'This list must have exactly one element'

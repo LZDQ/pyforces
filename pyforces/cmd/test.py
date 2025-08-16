@@ -10,49 +10,49 @@ logger = getLogger(__name__)
 
 
 def do_test(args: Namespace):
+    """ Test the source file against test cases.
+    Most users only use cpp and the filename is cwd's name + ".cpp", so this is the default.
     """
-    test the source file against test cases.
-    Most users only use cpp, so by default if the file is not specified, will
-    list all cpp files and if there is only one, use that one; otherwise need to 
-    specify --file
-    """
-    if args.file:
-        source_file = args.file
-    else:
-        source_file = get_current_cpp_file()
-        if not source_file:
-            print(f"Please test with  -f <file>")
+    if args.shell:
+        if args.file:
+            print("Cannot pass both --shell and --file")
             return
-        logger.info("Using source file %s", source_file)
-
-    if source_file.suffix == '.cpp':
-        executable = str(source_file.parent / source_file.stem)
-        if os.name == 'nt':  # Windows
-            executable += '.exe'
-        executable = Path(executable).absolute()
-
-        logger.info("Using executable %s", executable)
-        if not executable.is_file():
-            print(f"Executable {executable} not found, please compile first")
-            return
-        executor = TraditionalExecutor(
-            executable,
-            shell=False,
-            time_limit=2,  # TL and ML are defaults now, doesn't affect small sample testcases
-            memory_limit=512*1024*1024,
-        )
-    elif source_file.suffix == '.py':
-        # use the current interpreter to run the py file
-        logger.info("Using interpreter %s", sys.executable)
-        executor = TraditionalExecutor(
-            [sys.executable, source_file],
-            shell=False,
-            time_limit=2,
-            memory_limit=512*1024*1024,
-        )
+        executor = TraditionalExecutor(shell=args.shell)
     else:
-        print("Other languages are not supported yet ><")
-        return
+        if args.file:
+            source_file = args.file
+        else:
+            source_file = get_current_cpp_file()
+            if not source_file:
+                print("Please test with  -f <file>")
+                return
+            logger.info("Using source file %s", source_file)
+
+        if source_file.suffix == '.cpp':
+            if os.name == 'nt':  # Windows, change to .exe
+                executable = source_file.with_suffix('.exe')
+            else:  # Unix, remove extension
+                executable = source_file.with_suffix('')
+
+            logger.info("Using executable %s", executable)
+            if not executable.is_file():
+                print(f'Executable "{executable}" not found, please compile first')
+                return
+            mtime_source = source_file.stat().st_mtime
+            mtime_executable = executable.stat().st_mtime
+            if mtime_source > mtime_executable:
+                logger.warning('Source file "%s" is modified after executable "%s", '
+                               'did you forget to compile?', source_file, executable)
+            executor = TraditionalExecutor(args=str(executable.absolute()))
+
+        elif source_file.suffix == '.py':
+            # use the current interpreter to run the py file
+            logger.info("Using interpreter %s", sys.executable)
+            executor = TraditionalExecutor(args=[sys.executable, str(source_file)])
+
+        else:
+            print("Other languages are not supported yet >< plz use --shell")
+            return
 
     return_code = 0  # exit code to indicate whether passed
     idx = 1
@@ -88,7 +88,7 @@ def do_test(args: Namespace):
                 peak_memory *= 1024  # on Linux it's KB
             print(f"Peak memory usage <= {peak_memory/1024/1024:.2f}MB")
         except Exception as e:
-            logger.warning("Failed to fetch maxrss: %s", e)
+            logger.exception(e)
 
     if return_code:
         exit(return_code)

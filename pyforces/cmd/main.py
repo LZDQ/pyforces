@@ -42,13 +42,23 @@ Also controlled by environment variable LOG_LEVEL, but argument takes precedence
     parse_parser = subparsers.add_parser('parse')
 
     # test
-    test_parser = subparsers.add_parser('test')
+    test_parser = subparsers.add_parser('test', usage="""
+Test the solution against each pair of [input, answer] ([in1.txt, ans1.txt], etc.).
+Defaults to use the current directory's name + ".cpp" (like "a.cpp" if in directory "a").
+If you want to use other files or custom command plz use --file or --shell
+    """.strip())
     test_parser.add_argument('-f', '--file', type=Path, help="""
-The source file (like a.cpp). For cpp files, pyforces will get the executable file's name by source file,
-and execute it.  For py files, pyforces will use the current interpreter to run the file.
+The source file (like a.cpp).
+For .cpp files, will get the executable file's name by source file, and execute it.
+For .py files, will use the current interpreter to run the file.
+For other files, consider --shell
+    """)
+    test_parser.add_argument('--shell', type=str, help="""
+(For customization) a shell string to run the solution.
+For example, 'java a.java'
     """)
     test_parser.add_argument('--poll', action=BooleanOptionalAction, default=True, help="""
-Whether use psutil to poll and track memory usage. Default is true. If false, will use 
+Whether use psutil to poll and track memory usage. If false, will use 
 subprocess.run instead.
     """)
 
@@ -63,7 +73,7 @@ For example, PyPy 3.10 has value 70. """)
 Whether track submission status.
     """)
     submit_parser.add_argument('--poll', type=float, required=False, help="""
-If set, use polling instead of websocket to receive updates.
+If set, use polling (seconds) instead of websocket to receive updates.
     """)
     
     args = parser.parse_args()
