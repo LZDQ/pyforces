@@ -121,6 +121,7 @@ Since login requries you to actually login in Firefox first, this doesn't violat
 ## TODO
 
 - [ ] Bug fix: some problems have multiple sub-problems like g1, g2
+- [ ] Bug fix: cannot track last submission
 - [ ] Floating-point errors in tests
 - [x] (Neo)vim config example
 - [ ] Fix "ensure logged in" (some old cookies still work on the host url)
