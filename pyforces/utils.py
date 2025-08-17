@@ -53,6 +53,7 @@ def get_current_cpp_file() -> Path | None:
     file = Path(Path.cwd().name + '.cpp')
     if file.is_file():
         return file
+    logger.warning('File "%s" not found', file)
 
 def from_list1(l: list):
     assert len(l) == 1, 'This list must have exactly one element'

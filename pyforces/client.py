@@ -77,16 +77,20 @@ class Client(ABC):
 class CloudscraperClient(Client):
     """ This client sends any HTTP requests with cloudscraper, with custom HTTP headers. """
     
-    def __init__(self,
-                 headers: Optional[dict[str, str]],
-                 csrf_token: Optional[str],
-                 handle: Optional[str],
-                 _root: Path,
-                 _headers_file: Path,
-                 _csrf_token_file: Path,
-                 ):
+    def __init__(
+        self,
+        headers: dict[str, str] | None,
+        csrf_token: str | None,
+        handle: str | None,
+        _root: Path,
+        _headers_file: Path,
+        _csrf_token_file: Path,
+    ):
         import cloudscraper
-        self.scraper = cloudscraper.create_scraper(debug=logger.isEnabledFor(logging.DEBUG))
+        self.scraper = cloudscraper.create_scraper(
+            # debug=all(handler.level <= logging.DEBUG for handler in logging.handlers)
+            debug=False  # TODO: log the request and response
+        )
         self.headers = headers
         self.csrf_token = csrf_token
         self.handle = handle

@@ -45,6 +45,8 @@ Also controlled by environment variable LOG_LEVEL, but argument takes precedence
 
     # test
     test_parser = subparsers.add_parser('test', usage="""
+pyforces test [options]
+
 Test the solution against each pair of [input, answer] ([in1.txt, ans1.txt], etc.).
 Defaults to use the current directory's name + ".cpp" (like "a.cpp" if in directory "a").
 If you want to use other files or custom command plz use --file or --shell
@@ -64,10 +66,10 @@ Whether use psutil to poll and track memory usage. If false, will use
 subprocess.run instead.
     """)
     test_parser.add_argument("--time-limit", type=float, default=2.0, help="""
-Time limit in seconds. Can be float.
+Time limit in seconds. Can be float. (default: 2.0)
     """)
     test_parser.add_argument("--memory-limit", type=str, default="512M", help="""
-Memory limit in bytes or K, M, G.
+Memory limit in bytes or K, M, G. (default: 512M)
 "128m" is 128*1024*1024 bytes;
 "2G" is 2*1024*1024*1024 bytes;
 "998244353" is 998244353 bytes (about 952M).
@@ -75,8 +77,14 @@ Unit can be both lowercase or uppercase.
     """)
 
     # submit
-    submit_parser = subparsers.add_parser('submit')
-    submit_parser.add_argument('-f', '--file', type=Path)
+    submit_parser = subparsers.add_parser('submit', usage="""
+pyforces submit [options]
+
+Defaults to submit the current directory's name + ".cpp" (like "a.cpp" if in directory "a").
+    """.strip())
+    submit_parser.add_argument('-f', '--file', type=Path, help="""
+Source code file to submit, like "a.cpp"
+    """)
     submit_parser.add_argument('--program-type-id', type=int, help="""
 If you want to submit languages other than C++, set this to the program type id
 of your language.  To view the value, right-click the drop down menu in your browser.
@@ -85,7 +93,13 @@ For example, PyPy 3.10 has value 70. """)
 Whether track submission status.
     """)
     submit_parser.add_argument('--poll', type=float, required=False, help="""
-If set, use polling (seconds) instead of websocket to receive updates.
+If set, use this polling interval (in seconds) instead of websocket to receive updates.
+    """)
+    submit_parser.add_argument('--url', type=str, help="""
+(For customization) the URL to POST data, for example "https://codeforces.com/contest/1234/submit"
+    """)
+    submit_parser.add_argument('--problem-id', type=str, help="""
+(For customization) the problem id to POST, like A, B, C, D1, D2
     """)
     
     args = parser.parse_args()

@@ -16,6 +16,8 @@ def do_submit(cfg: Config, cln: Client, args: Namespace):
     """ (Non-interactive) submit.
     Normal C++ users don't need to pass any arguments. Will use directory's name + ".cpp"
     Other languages users need to pass both --file and --program-type-id.
+
+    For further customization, use --url and --problem-id
     """
     if args.file:
         source_file = args.file
@@ -37,12 +39,13 @@ def do_submit(cfg: Config, cln: Client, args: Namespace):
     contest_type, contest_id, problem_id = get_current_contest_type_id_problem_id()
     submit_time = time.time()
     sub_info = cln.submit(
-        url=f"{cfg.host}/{contest_type}/{contest_id}/submit",
-        problem_id=problem_id,
+        url=args.url or f"{cfg.host}/{contest_type}/{contest_id}/submit",
+        problem_id=args.problem_id or problem_id,
         program_type_id=program_type_id,
         source_file=source_file,
         track=args.track,
     )
+
     if args.track:
         if sub_info is None:
             print("Failed to fetch submission info")
