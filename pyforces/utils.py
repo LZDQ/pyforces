@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Optional
 from logging import getLogger
+import re
 
 logger = getLogger(__name__)
 
@@ -59,3 +60,9 @@ def from_list1(l: list):
 
 def contest_type_from_id(x: int):
     return 'contest' if x<100000 else 'gym'
+
+def parse_human_bytesize(human_size: str):
+    m = re.match(r'(\d+)([KMG]?)', human_size.upper())
+    assert m, f'"{human_size}" is not valid byte size'
+    units = {"": 1, "K": 1024, "M": 1024*1024, "G": 1024*1024*1024}
+    return int(m.group(1)) * units[m.group(2)]

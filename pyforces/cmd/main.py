@@ -61,6 +61,16 @@ For example, 'java a.java'
 Whether use psutil to poll and track memory usage. If false, will use 
 subprocess.run instead.
     """)
+    test_parser.add_argument("--time-limit", type=float, default=2.0, help="""
+Time limit in seconds. Can be float.
+    """)
+    test_parser.add_argument("--memory-limit", type=str, default="512M", help="""
+Memory limit in bytes or K, M, G.
+"128m" is 128*1024*1024 bytes;
+"2G" is 2*1024*1024*1024 bytes;
+"998244353" is 998244353 bytes (about 952M).
+Unit can be both lowercase or uppercase.
+    """)
 
     # submit
     submit_parser = subparsers.add_parser('submit')

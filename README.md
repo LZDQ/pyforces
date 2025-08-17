@@ -127,15 +127,13 @@ Since login requries you to actually login in Firefox first, this doesn't violat
 - [x] Use websocket to receive status updates
 - [ ] ~~Test on Windows & Mac~~ Write tests(?)
 - [ ] Provide more test outputs
-- [ ] Better CLI
-- [ ] Arguments for time and memory limit
+- [ ] Better CLI and color
+- [x] Arguments for time and memory limit
 - [ ] Arguments for user customization
 - [ ] Logs to `~/.pyforces/logs/` to track bugs
 
 ## Not Planned
 
-* Colorful CLI
 * Login with username and password (too complicated firewall)
 * SPJ, interactive problem and communication. Most users don't write SPJ or interactor during contest, and after contest it is better to write custom test scripts for these problems.
 * Export as a python SDK for other libraries. CLI is the only way to use this tool.
-

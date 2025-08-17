@@ -162,10 +162,6 @@ class TraditionalExecutor:
                 )
                 end_time = time.perf_counter()
 
-                # # After execution, capture resource usage (peak memory)
-                # usage = resource.getrusage(resource.RUSAGE_CHILDREN)
-                # peak_memory = usage.ru_maxrss * 1024  # ru_maxrss returns KB on Linux
-
                 passed, reason = compare_output(proc.stdout, answer.read())
 
                 return ExecuteResult(
