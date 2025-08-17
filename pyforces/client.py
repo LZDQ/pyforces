@@ -1,11 +1,6 @@
-from abc import ABC, abstractmethod
 import json
-import logging
-import os
 from pathlib import Path
-import http.cookiejar
 from logging import getLogger
-from typing import Literal, Optional
 
 from pyforces.cf.problem import CFProblem
 from pyforces.cf.parser import parse_countdown_from_html, parse_handle_from_html, parse_csrf_token_from_html, parse_last_submission_id_from_html, parse_problem_count_from_html, parse_verdict_from_html, parse_ws_cc_pc_from_html
@@ -13,68 +8,7 @@ from pyforces.utils import parse_firefox_http_headers
 
 logger = getLogger(__name__)
 
-class Client(ABC):
-    """ The automated web handler class.
-    Abstracted to support cloudscraper, selenium, m1.codeforces.com, etc.
-    The abstract methods aligns with the interactive config options.
-    """
-
-    @classmethod
-    @abstractmethod
-    def from_path(cls, path: Path):
-        """ Load from ~/.pyforces """
-        # cookies = http.cookiejar.LWPCookieJar(path / 'cookies.txt')
-        # try:
-        #     cookies.load()
-        # except FileNotFoundError:
-        #     logger.info("Cookie file not found, will create one.")
-        # return cls(cookies=cookies, _root=path)
-        ...
-
-    @abstractmethod
-    def login(self, host: str, username: str, password: str):
-        ...
-
-    @abstractmethod
-    def parse_testcases(self, url: str) -> list[tuple[str, str]]:
-        ...
-
-    @abstractmethod
-    def parse_countdown(self, url_contest: str) -> tuple[int, int, int] | None:
-        ...
-
-    @abstractmethod
-    def parse_problem_count(self, url_contest: str) -> int:
-        ...
-
-    @abstractmethod
-    def parse_status(self, url_status: str) -> str:
-        ...
-        
-    @abstractmethod
-    def submit(self,
-               url: str,
-               problem_id: str,
-               program_type_id: int,
-               source_file: Path,
-               track: bool,
-               ) -> int | None:
-        """
-        Args:
-            url:  something like https://codeforces.com/contest/2092/submit
-            problem_id:  A, B, C, etc
-            program_type_id:  54 for C++17
-            source_file:  path to source file
-            track: whether return the submission id
-        """
-        ...
-        
-    @abstractmethod
-    def save(self):
-        ...
-
-
-class CloudscraperClient(Client):
+class Client:
     """ This client sends any HTTP requests with cloudscraper, with custom HTTP headers. """
     
     def __init__(
@@ -140,19 +74,22 @@ class CloudscraperClient(Client):
             _csrf_token_file=token_file,
         )
 
-    def login(self, host: str, username: str, password: str):
-        """ Currently this is function will not be invoked, login with HTTP headers instead. """
-        # resp = self.scraper.get(host + '/enter')
-        # print(resp.text)
-        raise NotImplementedError()
-
-    def submit(self,
-               url: str,
-               problem_id: str,
-               program_type_id: int,
-               source_file: Path,
-               track: bool,
-               ):
+    def submit(
+        self,
+        url: str,
+        problem_id: str,
+        program_type_id: int,
+        source_file: Path,
+        track: bool,
+    ):
+        """
+        Args:
+            url:  something like https://codeforces.com/contest/2092/submit
+            problem_id:  A, B, C, D1, D2, etc
+            program_type_id:  54 for C++17
+            source_file:  path to source file
+            track: whether return the submission id
+        """
         if self.headers is None:
             print("You should login with HTTP headers first, see video tutorial.")
             return
@@ -217,7 +154,6 @@ class CloudscraperClient(Client):
         return problem.testcases
     
     def save(self):
-        super().save()
         if self.headers:
             with self._headers_file.open('w') as fp:
                 json.dump(self.headers, fp, indent=4)

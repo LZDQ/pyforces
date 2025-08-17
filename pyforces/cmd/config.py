@@ -4,14 +4,14 @@ from getpass import getpass
 from pathlib import Path
 import json
 
-from pyforces.client import Client, CloudscraperClient
+from pyforces.client import Client
 from pyforces.config import CodeTemplate, Config
 from pyforces.utils import input_index, input_y_or_n, parse_firefox_http_headers
 
 logger = getLogger(__name__)
 
 def login_with_http_header(cfg: Config, cln: Client):
-    if isinstance(cln, CloudscraperClient):
+    if isinstance(cln, Client):
         print("Please follow the video tutorial and paste the HTTP header from Firefox:")
         s = ''
         while True:
@@ -32,7 +32,7 @@ def login_with_http_header(cfg: Config, cln: Client):
         raise NotImplementedError()
 
 def ensure_logged_in(cfg: Config, cln: Client):
-    if isinstance(cln, CloudscraperClient):
+    if isinstance(cln, Client):
         cln.parse_csrf_token_and_handle(cfg.host)
         if cln.handle:
             print(f"Already logged in as {cln.handle}")
@@ -41,13 +41,6 @@ def ensure_logged_in(cfg: Config, cln: Client):
         cln.save()
     else:
         raise NotImplementedError()
-
-def login_with_handle_passwd(cfg: Config, cln: Client):
-    print("Note: password is hidden, just type it correctly.")
-    username = input('Username: ')
-    password = getpass()
-    cln.login(cfg.host, username, password)
-    cln.save()
 
 def add_template(cfg: Config):
     # TODO: add path completion

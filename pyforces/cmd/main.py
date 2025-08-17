@@ -5,7 +5,7 @@ from pathlib import Path
 import colorlog
 from datetime import datetime
 
-from pyforces.client import Client, CloudscraperClient
+from pyforces.client import Client
 from pyforces.cmd.config import do_config
 from pyforces.cmd.gen import do_gen
 from pyforces.cmd.parse import do_parse
@@ -23,7 +23,7 @@ Welcome to pyforces! Parse, test, submit, make you blazingly fast!
     parser.add_argument('--log-level', type=str,
                         default=os.environ.get('LOG_LEVEL', 'WARNING'),
                         help="""
-Configure the logging level (INFO, ERROR, etc.). 
+Configure the logging level (INFO, ERROR, etc).
 Also controlled by environment variable LOG_LEVEL, but argument takes precedence.
                         """,)
     subparsers = parser.add_subparsers(dest='subcommand', required=True)
@@ -129,7 +129,7 @@ If set, use this polling interval (in seconds) instead of websocket to receive u
 
     # Init config, reload web session (cookies)
     cfg = Config.from_file(root_cfg / 'config.json')
-    cln = CloudscraperClient.from_path(root_cfg)
+    cln = Client.from_path(root_cfg)
     
     match args.subcommand:
         case 'config':
