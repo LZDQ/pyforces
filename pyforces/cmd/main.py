@@ -33,8 +33,16 @@ Also controlled by environment variable LOG_LEVEL, but argument takes precedence
     # config_parser.add_argument('config_subcommand', nargs='?')
 
     # race
-    race_parser = subparsers.add_parser('race')
+    race_parser = subparsers.add_parser('race', usage="""
+pyforces race <contest_id>
+
+For example, "pyforces race 1234" will countdown until the contest starts,
+and then open the url and parse the testcases for each problem under ~/cf/contest/1234/
+    """.strip())
     race_parser.add_argument('contest_id', type=int)
+    race_parser.add_argument('-d', '--dir', type=Path, help="""
+(For customization) a directory to put the problems into, like "./1234/"
+    """)
 
     # gen
     gen_parser = subparsers.add_parser('gen')
@@ -140,7 +148,7 @@ If set, use this polling interval (in seconds) instead of websocket to receive u
         case 'config':
             do_config(cfg, cln)
         case 'race':
-            do_race(cfg, cln, args.contest_id)
+            do_race(cfg, cln, args)
         case 'gen':
             do_gen(cfg, args.name)
         case 'parse':

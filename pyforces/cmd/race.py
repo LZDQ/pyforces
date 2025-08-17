@@ -1,3 +1,4 @@
+from argparse import Namespace
 import os
 from pathlib import Path
 from pyforces.client import Client
@@ -14,11 +15,15 @@ from pyforces.utils import contest_type_from_id
 logger = getLogger(__name__)
 
 
-def do_race(cfg: Config, cln: Client, contest_id: int):
+def do_race(cfg: Config, cln: Client, args: Namespace):
+    contest_id = args.contest_id
     if cfg.gen_after_parse and cfg.default_template == -1:
-        logger.warning("No default template set")
+        logger.warning("No default template, will not generate")
 
     contest_type = contest_type_from_id(contest_id)
+    contest_path = args.dir or Path.home() / cfg.root_name / contest_type / str(contest_id)
+    contest_path.mkdir(exist_ok=True, parents=True)
+
     url_contest = f"{cfg.host}/{contest_type}/{contest_id}"
     countdown = cln.parse_countdown(url_contest)
     if countdown:
@@ -27,9 +32,6 @@ def do_race(cfg: Config, cln: Client, contest_id: int):
 
     if cfg.race_open_url:
         webbrowser.open(url_contest + cfg.race_open_url)
-
-    contest_path = Path.home() / cfg.root_name / contest_type / str(contest_id)
-    contest_path.mkdir(exist_ok=True, parents=True)
 
     if cfg.race_delay_parse:
         print(f"Delaying parsing")
