@@ -41,7 +41,12 @@ Also controlled by environment variable LOG_LEVEL, but argument takes precedence
     gen_parser.add_argument('name', type=str, help="The template's name")
 
     # parse
-    parse_parser = subparsers.add_parser('parse')
+    parse_parser = subparsers.add_parser('parse', description="""
+Parse current problem's testcases.
+    """)
+    parse_parser.add_argument('--url', type=str, help="""
+(For customization) the problem's URL, for example "https://codeforces.com/contest/2092/problem/A"
+    """)
 
     # test
     test_parser = subparsers.add_parser('test', usage="""
@@ -139,7 +144,7 @@ If set, use this polling interval (in seconds) instead of websocket to receive u
         case 'gen':
             do_gen(cfg, args.name)
         case 'parse':
-            do_parse(cfg, cln)
+            do_parse(cfg, cln, args)
         case 'test':
             do_test(args)
         case 'submit':

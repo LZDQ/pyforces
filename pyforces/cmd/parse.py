@@ -1,13 +1,16 @@
+from argparse import Namespace
 from pyforces.cmd.gen import do_gen
 from pyforces.config import Config
 from pyforces.client import Client
-from pyforces.utils import contest_type_from_id, get_current_contest_type_id_problem_id
+from pyforces.utils import get_current_contest_type_id_problem_id
 
 
-def do_parse(cfg: Config, cln: Client):
+def do_parse(cfg: Config, cln: Client, args: Namespace):
     """ Parse sample testcases under the current directory. """
     contest_type, contest_id, problem_id = get_current_contest_type_id_problem_id()
-    testcases = cln.parse_testcases(f"{cfg.host}/{contest_type}/{contest_id}/problem/{problem_id}")
+    testcases = cln.parse_testcases(
+        args.url or f"{cfg.host}/{contest_type}/{contest_id}/problem/{problem_id}"
+    )
     for idx, (input, answer) in enumerate(testcases):
         with open(f"in{idx+1}.txt", "w") as fp:
             print(input, file=fp)
