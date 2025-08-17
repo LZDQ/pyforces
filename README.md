@@ -130,7 +130,7 @@ Since login requries you to actually login in Firefox first, this doesn't violat
 - [ ] Better CLI and color
 - [x] Arguments for time and memory limit
 - [ ] Arguments for user customization
-- [ ] Logs to `~/.pyforces/logs/` to track bugs
+- [x] Logs to `~/.pyforces/logs/` to track bugs
 
 ## Not Planned
 

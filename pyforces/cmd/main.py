@@ -2,6 +2,8 @@ from argparse import ArgumentParser, BooleanOptionalAction
 import logging
 import os
 from pathlib import Path
+import colorlog
+from datetime import datetime
 
 from pyforces.client import Client, CloudscraperClient
 from pyforces.cmd.config import do_config
@@ -87,12 +89,29 @@ If set, use polling (seconds) instead of websocket to receive updates.
     """)
     
     args = parser.parse_args()
-    logging.basicConfig(level=args.log_level.upper())
 
     # Ensure dir ~/.pyforces exists
     root_cfg = Path.home() / '.pyforces'
     if not root_cfg.is_dir():
         root_cfg.mkdir()
+
+    # Colorful console + file logging
+    handler_console = colorlog.StreamHandler()
+    handler_console.setFormatter(colorlog.ColoredFormatter(
+        '%(log_color)s[%(levelname)s] %(name)s: %(message)s'))
+    handler_console.setLevel(args.log_level.upper())
+    logs_dir = root_cfg / 'logs'
+    logs_dir.mkdir(exist_ok=True)
+    log_file = logs_dir / datetime.today().strftime('%Y-%m-%d.log')
+    handler_logfile = logging.FileHandler(log_file)
+    handler_logfile.setLevel(logging.DEBUG)
+    handler_logfile.setFormatter(logging.Formatter(
+        '%(asctime)s - [%(levelname)s] %(name)s: %(message)s'))
+    logging.basicConfig(handlers=[
+        handler_console, handler_logfile
+    ], level=logging.DEBUG)
+    logging.debug("Start at %s with args %s", Path.cwd(), args)
+
 
     # Init config, reload web session (cookies)
     cfg = Config.from_file(root_cfg / 'config.json')

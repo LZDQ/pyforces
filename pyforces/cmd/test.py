@@ -30,7 +30,7 @@ def do_test(args: Namespace):
             if not source_file:
                 print("Please test with  -f <file>")
                 return
-            logger.info("Using source file %s", source_file)
+            logger.info('Using source file "%s"', source_file)
 
         if source_file.suffix == '.cpp':
             if os.name == 'nt':  # Windows, change to .exe
@@ -38,7 +38,7 @@ def do_test(args: Namespace):
             else:  # Unix, remove extension
                 executable = source_file.with_suffix('')
 
-            logger.info("Using executable %s", executable)
+            logger.info('Using executable "%s"', executable)
             if not executable.is_file():
                 print(f'Executable "{executable}" not found, please compile first')
                 return
@@ -54,7 +54,7 @@ def do_test(args: Namespace):
 
         elif source_file.suffix == '.py':
             # use the current interpreter to run the py file
-            logger.info("Using interpreter %s", sys.executable)
+            logger.info('Using interpreter "%s"', sys.executable)
             executor = TraditionalExecutor(
                 args=[sys.executable, str(source_file)],
                 time_limit=time_limit, memory_limit=memory_limit,
