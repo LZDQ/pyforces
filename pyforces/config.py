@@ -41,6 +41,7 @@ class Config:
         submit_cpp_std: preferred cpp version, could be cpp17, cpp20, cpp23
         race_open_url: url suffix to open in browser, default '/problems'
         race_delay_parse: seconds to delay parse after the race start (to avoid network congestion)
+        race_link_sub_problem: whether use hard link to bind multiple problem files into one
     """
     
     templates: list[CodeTemplate]
@@ -51,6 +52,7 @@ class Config:
     submit_cpp_std: str
     race_open_url: str
     race_delay_parse: int
+    race_link_sub_problem: bool
     _config_file: Path
 
     @classmethod
@@ -75,6 +77,7 @@ class Config:
             submit_cpp_std=cfg.get('submit_cpp_std', 'cpp17'),
             race_open_url=cfg.get('race_open_url', '/problems'),
             race_delay_parse=cfg.get('race_delay_parse', 3),
+            race_link_sub_problem=cfg.get('race_link_sub_problem', True),
             _config_file=path,
         )
 
@@ -89,6 +92,7 @@ class Config:
             'submit_cpp_std': self.submit_cpp_std,
             'race_open_url': self.race_open_url,
             'race_delay_parse': self.race_delay_parse,
+            'race_link_sub_problem': self.race_link_sub_problem,
         }
         with self._config_file.open('w') as fp:
             json.dump(cfg, fp, indent=4)

@@ -3,7 +3,7 @@ from pathlib import Path
 from logging import getLogger
 
 from pyforces.cf.problem import CFProblem
-from pyforces.cf.parser import parse_countdown_from_html, parse_handle_from_html, parse_csrf_token_from_html, parse_last_submission_id_from_html, parse_problem_count_from_html, parse_verdict_from_html, parse_ws_cc_pc_from_html
+from pyforces.cf.parser import *
 from pyforces.utils import parse_firefox_http_headers
 
 logger = getLogger(__name__)
@@ -191,9 +191,9 @@ class Client:
         resp = self.scraper.get(url_countdown, headers=self.headers)
         return parse_countdown_from_html(resp.text)
 
-    def parse_problem_count(self, url_contest: str) -> int:
+    def parse_problem_indices(self, url_contest: str) -> int:
         resp = self.scraper.get(url_contest, headers=self.headers)
-        return parse_problem_count_from_html(resp.text)
+        return parse_problem_indices_from_html(resp.text)
     
     def parse_status(self, url_status: str) -> str:
         resp = self.scraper.get(url_status, headers=self.headers)

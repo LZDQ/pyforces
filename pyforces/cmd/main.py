@@ -152,7 +152,7 @@ If set, use this polling interval (in seconds) instead of websocket to receive u
         case 'gen':
             do_gen(cfg, args.name)
         case 'parse':
-            do_parse(cfg, cln, args)
+            do_parse(cfg, cln, args.url)
         case 'test':
             do_test(args)
         case 'submit':

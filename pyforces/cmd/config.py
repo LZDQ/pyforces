@@ -1,6 +1,5 @@
 from logging import getLogger
 import os.path
-from getpass import getpass
 from pathlib import Path
 import json
 
@@ -56,7 +55,7 @@ def add_template(cfg: Config):
     if not name:
         print("Name cannot be empty, exiting")
         return
-    make_default = input_y_or_n("Make it default? (y/n):\n")
+    make_default = input_y_or_n("Make it default? [y/n]:\n")
     if make_default:
         cfg.default_template = len(cfg.templates)
     cfg.templates.append(CodeTemplate(path=path, name=name))
@@ -90,7 +89,7 @@ def set_default_template(cfg: Config):
     
 def set_gen_after_parse(cfg: Config):
     print(f"Current state: {cfg.gen_after_parse}")
-    cfg.gen_after_parse = input_y_or_n("New value (y/n):\n")
+    cfg.gen_after_parse = input_y_or_n("New value [y/n]:\n")
     cfg.save()
 
 def set_host_domain(cfg: Config):
@@ -106,7 +105,7 @@ def set_folder_name(cfg: Config):
     old_dir = Path.home() / cfg.root_name
     new_dir = Path.home() / new_name
     if old_dir.is_dir():
-        if input_y_or_n(f"Move {old_dir} to {new_dir}? (Y/n)\n", default=True):
+        if input_y_or_n(f"Move {old_dir} to {new_dir}? [Y/n]\n", default=True):
             old_dir.rename(new_dir)
             logger.info("Moved %s to %s", old_dir, new_dir)
     else:
@@ -123,16 +122,6 @@ def set_cpp_std(cfg: Config):
     cfg.save()
 
 def config_race(cfg: Config):
-    print(f"How many seconds in advance to open url in browser? (input negative integer to postpone)")
-    print(f"Current value: {cfg.race_pre_sec}")
-    race_pre_sec = input(f"New value (input empty line if u don't want to change it):\n")
-    if race_pre_sec:
-        try:
-            cfg.race_pre_sec = int(race_pre_sec)
-        except ValueError:
-            print("Please input an integer. Aborting")
-            return
-
     print(f"What url to open?")
     print(f"Input / if u want to open the contest dashboard;")
     print(f"Input /problems if u want to open the complete problemset;")
@@ -148,17 +137,24 @@ def config_race(cfg: Config):
 
     print(f"How many seconds do u want to delay the parsing (to avoid network congestion)?")
     print(f"Current value: {cfg.race_delay_parse}")
-    race_delay_parse = input(f"New value (input empty line if u don't want to change it):\n")
+    race_delay_parse = input("New value (input empty line if u don't want to change it):\n")
     if race_delay_parse:
         try:
             race_delay_parse = int(race_delay_parse)
         except ValueError:
-            print(f"Please input an integer.")
+            print("Please input an integer.")
             return
         if race_delay_parse < 0:
-            print(f"Please input a non-negative integer.")
+            print("Please input a non-negative integer.")
             return
         cfg.race_delay_parse = race_delay_parse
+
+    print(f"Do you want to link files? Link g2.cpp to g1.cpp so that you can continue on that.")
+    print(f"Current value: {cfg.race_link_sub_problem}")
+    prompt = "New value "
+    prompt += "[Y/n]" if cfg.race_link_sub_problem else "[y/N]"
+    prompt += ":\n"
+    cfg.race_link_sub_problem = input_y_or_n(prompt, default=cfg.race_link_sub_problem)
 
     cfg.save()
 

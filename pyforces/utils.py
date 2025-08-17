@@ -42,8 +42,7 @@ def get_current_contest_type_id_problem_id() -> tuple[str, int, str]:
     """ contest_type, contest_id, problem_id """
     parts = Path.cwd().parts
     problem_id = parts[-1].upper()
-    assert len(problem_id) == 1
-    assert problem_id.isalpha()
+    assert re.match(r'[A-Z][1-9]?', problem_id), f'"{problem_id}" is not valid problem id'
     contest_id = int(parts[-2])
     contest_type = parts[-3]
     assert contest_type in ['contest', 'gym']

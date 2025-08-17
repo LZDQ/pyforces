@@ -139,9 +139,9 @@ def parse_countdown_from_html(html: str) -> tuple[int, int, int] | None:
     h, m, s = int(h), int(m), int(s)
     return h, m, s
 
-def parse_problem_count_from_html(html: str) -> int:
+def parse_problem_indices_from_html(html: str) -> list[str]:
     tree = etree.parse(StringIO(html), etree.HTMLParser())
-    return len(tree.xpath("//td[contains(@class, 'id')]"))
+    return [idx.strip() for idx in tree.xpath("//td[contains(@class, 'id')]/a/text()")]
 
 def parse_last_submission_id_from_html(html: str) -> int:
     # <tr data-submission-id="315671433" data-a="7963403939888496640" partyMemberIds=";915785;">
