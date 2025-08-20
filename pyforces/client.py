@@ -1,92 +1,30 @@
-from abc import ABC, abstractmethod
 import json
-import logging
-import os
 from pathlib import Path
-import http.cookiejar
 from logging import getLogger
-from typing import Literal, Optional
 
 from pyforces.cf.problem import CFProblem
-from pyforces.cf.parser import parse_countdown_from_html, parse_handle_from_html, parse_csrf_token_from_html, parse_last_submission_id_from_html, parse_problem_count_from_html, parse_verdict_from_html, parse_ws_cc_pc_from_html
+from pyforces.cf.parser import *
 from pyforces.utils import parse_firefox_http_headers
 
 logger = getLogger(__name__)
 
-class Client(ABC):
-    """ The automated web handler class.
-    Abstracted to support cloudscraper, selenium, m1.codeforces.com, etc.
-    The abstract methods aligns with the interactive config options.
-    """
-
-    @classmethod
-    @abstractmethod
-    def from_path(cls, path: Path):
-        """ Load from ~/.pyforces """
-        # cookies = http.cookiejar.LWPCookieJar(path / 'cookies.txt')
-        # try:
-        #     cookies.load()
-        # except FileNotFoundError:
-        #     logger.info("Cookie file not found, will create one.")
-        # return cls(cookies=cookies, _root=path)
-        ...
-
-    @abstractmethod
-    def login(self, host: str, username: str, password: str):
-        ...
-
-    @abstractmethod
-    def parse_testcases(self, url: str) -> list[tuple[str, str]]:
-        ...
-
-    @abstractmethod
-    def parse_countdown(self, url_contest: str) -> tuple[int, int, int] | None:
-        ...
-
-    @abstractmethod
-    def parse_problem_count(self, url_contest: str) -> int:
-        ...
-
-    @abstractmethod
-    def parse_status(self, url_status: str) -> str:
-        ...
-        
-    @abstractmethod
-    def submit(self,
-               url: str,
-               problem_id: str,
-               program_type_id: int,
-               source_file: Path,
-               track: bool,
-               ) -> int | None:
-        """
-        Args:
-            url:  something like https://codeforces.com/contest/2092/submit
-            problem_id:  A, B, C, etc
-            program_type_id:  54 for C++17
-            source_file:  path to source file
-            track: whether return the submission id
-        """
-        ...
-        
-    @abstractmethod
-    def save(self):
-        ...
-
-
-class CloudscraperClient(Client):
+class Client:
     """ This client sends any HTTP requests with cloudscraper, with custom HTTP headers. """
     
-    def __init__(self,
-                 headers: Optional[dict[str, str]],
-                 csrf_token: Optional[str],
-                 handle: Optional[str],
-                 _root: Path,
-                 _headers_file: Path,
-                 _csrf_token_file: Path,
-                 ):
+    def __init__(
+        self,
+        headers: dict[str, str] | None,
+        csrf_token: str | None,
+        handle: str | None,
+        _root: Path,
+        _headers_file: Path,
+        _csrf_token_file: Path,
+    ):
         import cloudscraper
-        self.scraper = cloudscraper.create_scraper(debug=logger.isEnabledFor(logging.DEBUG))
+        self.scraper = cloudscraper.create_scraper(
+            # debug=all(handler.level <= logging.DEBUG for handler in logging.handlers)
+            debug=False  # TODO: log the request and response
+        )
         self.headers = headers
         self.csrf_token = csrf_token
         self.handle = handle
@@ -112,7 +50,8 @@ class CloudscraperClient(Client):
             logger.info("Detected headers with only one entry with dict value, trying parsing firefox headers...")
             try:
                 headers = parse_firefox_http_headers(headers)
-            except:
+            except Exception as e:
+                logger.exception(e)
                 logger.error("Failed to parse firefox headers")
                 headers = None
 
@@ -136,19 +75,22 @@ class CloudscraperClient(Client):
             _csrf_token_file=token_file,
         )
 
-    def login(self, host: str, username: str, password: str):
-        """ Currently this is function will not be invoked, login with HTTP headers instead. """
-        # resp = self.scraper.get(host + '/enter')
-        # print(resp.text)
-        raise NotImplementedError()
-
-    def submit(self,
-               url: str,
-               problem_id: str,
-               program_type_id: int,
-               source_file: Path,
-               track: bool,
-               ):
+    def submit(
+        self,
+        url: str,
+        problem_id: str,
+        program_type_id: int,
+        source_file: Path,
+        track: bool,
+    ):
+        """
+        Args:
+            url:  something like https://codeforces.com/contest/2092/submit
+            problem_id:  A, B, C, D1, D2, etc
+            program_type_id:  54 for C++17
+            source_file:  path to source file
+            track: whether return the submission id
+        """
         if self.headers is None:
             print("You should login with HTTP headers first, see video tutorial.")
             return
@@ -200,20 +142,19 @@ class CloudscraperClient(Client):
             try:
                 logger.info("Parsed last submission id %d", sub_id)
                 return sub_id, cc, pc
-            except:
+            except Exception as e:
+                logger.exception(e)
                 logger.error("Failed to get last submission id")
                 return
 
         return
 
-    def parse_testcases(self, url: str) -> list[tuple[str, str]]:
-        problem = CFProblem.parse_from_url(
+    def parse_problem(self, url: str) -> CFProblem:
+        return CFProblem.parse_from_url(
             url, web_parser=lambda u: self.scraper.get(u, headers=self.headers).text
         )
-        return problem.testcases
     
     def save(self):
-        super().save()
         if self.headers:
             with self._headers_file.open('w') as fp:
                 json.dump(self.headers, fp, indent=4)
@@ -237,10 +178,11 @@ class CloudscraperClient(Client):
             self.csrf_token = parse_csrf_token_from_html(resp.text)
             self.handle = parse_handle_from_html(resp.text)
             logger.info("Parsed csrf token %s and handle %s", self.csrf_token, self.handle)
-        except:
+        except Exception as e:
             self.csrf_token = None
             self.handle = None
-            logger.warning("Cannot parse csrf token and handle (not logged in)")
+            logger.exception(e)
+            logger.error("Cannot parse csrf token and handle (not logged in)")
     
     def parse_countdown(self, url_contest: str) -> tuple[int, int, int] | None:
         """ Parse the /countdown url and return h,m,s, or None if already started
@@ -251,9 +193,9 @@ class CloudscraperClient(Client):
         resp = self.scraper.get(url_countdown, headers=self.headers)
         return parse_countdown_from_html(resp.text)
 
-    def parse_problem_count(self, url_contest: str) -> int:
+    def parse_problem_indices(self, url_contest: str) -> int:
         resp = self.scraper.get(url_contest, headers=self.headers)
-        return parse_problem_count_from_html(resp.text)
+        return parse_problem_indices_from_html(resp.text)
     
     def parse_status(self, url_status: str) -> str:
         resp = self.scraper.get(url_status, headers=self.headers)

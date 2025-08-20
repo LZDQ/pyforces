@@ -1,14 +1,13 @@
 from pathlib import Path
-from typing import Optional
 from pyforces.config import Config
 from logging import getLogger
 
 logger = getLogger(__name__)
 
 
-def do_gen(cfg: Config, name: Optional[str] = None):
+def do_gen(cfg: Config, name: str | None = None):
     if name:
-        templates = {t.name: t.path for t in cfg.templates}
+        templates = {t.name: t for t in cfg.templates}
         if name not in templates:
             print(f"{name} not found, choices are: {' '.join(templates.keys())}")
             return

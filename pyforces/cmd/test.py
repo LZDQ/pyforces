@@ -3,7 +3,7 @@ from argparse import Namespace
 from pathlib import Path
 import sys
 from pyforces.cf.execute import TraditionalExecutor
-from pyforces.utils import get_current_cpp_file
+from pyforces.utils import get_current_cpp_file, parse_human_bytesize
 from logging import getLogger
 
 logger = getLogger(__name__)
@@ -13,12 +13,16 @@ def do_test(args: Namespace):
     """ Test the source file against test cases.
     Most users only use cpp and the filename is cwd's name + ".cpp", so this is the default.
     """
+    time_limit = args.time_limit
+    memory_limit = parse_human_bytesize(args.memory_limit)
     if args.shell:
         if args.file:
             print("Cannot pass both --shell and --file")
             return
-        executor = TraditionalExecutor(shell=args.shell)
-    else:
+        executor = TraditionalExecutor(
+            shell=args.shell, time_limit=time_limit, memory_limit=memory_limit
+        )
+    else:  # Get the execution args from source file
         if args.file:
             source_file = args.file
         else:
@@ -26,7 +30,7 @@ def do_test(args: Namespace):
             if not source_file:
                 print("Please test with  -f <file>")
                 return
-            logger.info("Using source file %s", source_file)
+            logger.info('Using source file "%s"', source_file)
 
         if source_file.suffix == '.cpp':
             if os.name == 'nt':  # Windows, change to .exe
@@ -34,7 +38,7 @@ def do_test(args: Namespace):
             else:  # Unix, remove extension
                 executable = source_file.with_suffix('')
 
-            logger.info("Using executable %s", executable)
+            logger.info('Using executable "%s"', executable)
             if not executable.is_file():
                 print(f'Executable "{executable}" not found, please compile first')
                 return
@@ -43,12 +47,18 @@ def do_test(args: Namespace):
             if mtime_source > mtime_executable:
                 logger.warning('Source file "%s" is modified after executable "%s", '
                                'did you forget to compile?', source_file, executable)
-            executor = TraditionalExecutor(args=str(executable.absolute()))
+            executor = TraditionalExecutor(
+                args=str(executable.absolute()),
+                time_limit=time_limit, memory_limit=memory_limit,
+            )
 
         elif source_file.suffix == '.py':
             # use the current interpreter to run the py file
-            logger.info("Using interpreter %s", sys.executable)
-            executor = TraditionalExecutor(args=[sys.executable, str(source_file)])
+            logger.info('Using interpreter "%s"', sys.executable)
+            executor = TraditionalExecutor(
+                args=[sys.executable, str(source_file)],
+                time_limit=time_limit, memory_limit=memory_limit,
+            )
 
         else:
             print("Other languages are not supported yet >< plz use --shell")

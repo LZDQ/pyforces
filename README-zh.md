@@ -115,22 +115,3 @@ error: externally-managed-environment
 ### 是否违反机器人检测？
 
 由于登录需要先在 Firefox 中实际登录，此工具不违反机器人检测。更多详情请见 [此处](https://codeforces.com/blog/entry/134322)。
-
-## TODO
-
-- [ ] 测试中的浮点数错误
-- [ ] 特殊评测和交互式问题
-- [x] (Neo)vim 配置示例
-- [ ] Sphinx 文档
-- [ ] 支持作为库的 AI 自动解题
-- [ ] 修复“ensure logged in”（某些旧 cookie 在 host URL 上仍有效）
-- [x] 使用 websocket 接收状态更新
-- [x] 在 Windows 和 Mac 上测试
-- [ ] 提供更多测试输出
-- [ ] 时间和内存限制参数
-- [ ] 支持使用标准答案和暴力解法进行压力测试
-
-## Not Planned
-
-* 彩色命令行界面
-* 使用用户名和密码登录（防火墙过于复杂）

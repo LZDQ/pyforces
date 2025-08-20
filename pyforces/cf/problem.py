@@ -12,7 +12,7 @@ class CFProblem:
         testcases: list[tuple[str, str]],
         time_limit: float,
         memory_limit: int,  # in bytes
-        problem_page: ProblemPage,  # useless for now but it has problem statement
+        problem_page: ProblemPage,  # for problem statement
     ):
         self.url = url
         self.problem_type = problem_type
@@ -28,14 +28,14 @@ class CFProblem:
             url: something like https://codeforces.com/contest/2092/problem/A
             web_parser: a function that accepts a url string and returns the HTML
         """
-        problem = parse_problem_page_from_html(web_parser(url))
+        problem_page = parse_problem_page_from_html(web_parser(url))
         return cls(
             url=url,
-            problem_type=problem.problem_type,
-            testcases=problem.testcases,
-            time_limit=problem.time_limit,
-            memory_limit=problem.memory_limit,
-            problem_page=problem,
+            problem_type=problem_page.problem_type,
+            testcases=problem_page.testcases,
+            time_limit=problem_page.time_limit,
+            memory_limit=problem_page.memory_limit,
+            problem_page=problem_page,
         )
 
 

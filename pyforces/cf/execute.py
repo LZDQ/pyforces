@@ -13,11 +13,12 @@ def compare_output(output: str, answer: str) -> tuple[bool, str]:
     # TODO: add more logics like floating-point errors
     output = output.rstrip()
     answer = answer.rstrip()
-    if re.match(r'\b(yes|no)\b', answer, flags=re.IGNORECASE):
-        logger.info("Found 'Yes or No' type problem, performing case replacement")
+    if re.search(r'\b(yes|no)\b', answer, flags=re.IGNORECASE):
+        logger.info('Found "Yes or No" type problem, performing case replacement')
         output = re.sub(r'\b(yes|no)\b', lambda m: m.group(1).lower(), output, flags=re.IGNORECASE)
         answer = re.sub(r'\b(yes|no)\b', lambda m: m.group(1).lower(), answer, flags=re.IGNORECASE)
 
+    logger.debug('output is %s, answer is %s', repr(output), repr(answer))
     lines_output = output.splitlines()
     lines_answer = answer.splitlines()
     if len(lines_output) != len(lines_answer):
@@ -25,8 +26,9 @@ def compare_output(output: str, answer: str) -> tuple[bool, str]:
     for ln, (line_out, line_ans) in enumerate(zip(lines_output, lines_answer)):
         line_out = line_out.rstrip()
         line_ans = line_ans.rstrip()
+        logger.debug('Comparing line %d: output="%s" answer="%s"', ln+1, line_out, line_ans)
         if line_out != line_ans:
-            return False, f"Expected {line_ans} on line {ln}, found {line_out}"
+            return False, f"Expected {line_ans} on line {ln+1}, found {line_out}"
     return True, "Passed"
 
 @dataclass
@@ -161,10 +163,6 @@ class TraditionalExecutor:
                     check=True,
                 )
                 end_time = time.perf_counter()
-
-                # # After execution, capture resource usage (peak memory)
-                # usage = resource.getrusage(resource.RUSAGE_CHILDREN)
-                # peak_memory = usage.ru_maxrss * 1024  # ru_maxrss returns KB on Linux
 
                 passed, reason = compare_output(proc.stdout, answer.read())
 

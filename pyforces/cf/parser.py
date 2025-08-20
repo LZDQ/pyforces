@@ -7,7 +7,7 @@ from markdownify import markdownify
 from logging import getLogger
 
 from pyforces.cf.problem_type import ProblemType
-from pyforces.utils import from_list1
+from pyforces.utils import from_list1, to_human_bytesize
 
 logger = getLogger(__name__)
 
@@ -16,17 +16,51 @@ class ProblemPage:
     time_limit: float
     memory_limit: int
     problem_type: ProblemType
+    title: str
     problem_statement: str
     input_spec: str
     output_spec: Optional[str]
     interaction_spec: Optional[str]
     testcases: list[tuple[str, str]]
     note: Optional[str]
+    root_element: etree._Element
+
+    def full_problem_statement(self) -> str:
+        md = f"""
+# {self.title}
+##### time limit: {self.time_limit}s
+##### memory limit: {to_human_bytesize(self.memory_limit)}
+        """.strip() + "\n"
+        md += "-----\n"
+        md += self.problem_statement + "\n\n"
+        md += "## Input\n\n"
+        md += self.input_spec + "\n\n"
+        if self.output_spec:
+            md += "## Output\n\n"
+            md += self.output_spec + "\n\n"
+        if self.interaction_spec:
+            md += "## Interaction\n\n"
+            md += self.interaction_spec + "\n\n"
+        md += "## Example\n\n"
+        for input, output in self.testcases:
+            md += "input\n"
+            md += f"```\n{input}\n```\n"
+            md += "output\n"
+            md += f"```\n{output}\n```\n"
+            md += "\n"
+        if self.note:
+            md += "## Note\n\n"
+            md += self.note + "\n\n"
+        return md.strip()
 
 def parse_problem_page_from_html(html: str) -> ProblemPage:
     tree = etree.parse(StringIO(html), etree.HTMLParser())
     problem_root = from_list1(tree.xpath("//div[@class='problem-statement']"))
 
+    # Title
+    title = from_list1(problem_root.xpath("./div[@class='header']/div[@class='title']/text()")).strip()
+
+    # TL, ML
     try:
         time_limit_text = from_list1(problem_root.xpath(".//div[@class='time-limit']/text()"))
         tl_match = re.match(r'((?:[0-9]+\.)?[0-9]+) seconds?', time_limit_text.strip())
@@ -47,6 +81,7 @@ def parse_problem_page_from_html(html: str) -> ProblemPage:
     html2md = lambda html: markdownify(html.replace("$$$", "$"), escape_underscores=False)
     div2md = lambda elem: html2md(etree.tostring(elem).decode())
 
+    # Problem statement
     try:
         problem_statement_md = div2md(problem_root.xpath("./div[not(@class)]")[0])
     except Exception as e:
@@ -54,45 +89,56 @@ def parse_problem_page_from_html(html: str) -> ProblemPage:
         logger.warning("Cannot parse problem statement")
         problem_statement_md = None
 
+    # Input specification
     input_spec_md = output_spec_md = interaction_spec_md = None
     problem_type = ProblemType.TRADITIONAL
 
+    # Interaction/Output specification
     interaction_div = problem_root.xpath('.//div[@class="section-title" and text()="Interaction"]')
     if interaction_div:
         problem_type = ProblemType.INTERACTIVE
         interaction_div = from_list1(interaction_div)
         logger.info("Interactive problem detected")
         try:
-            input_spec_md = div2md(from_list1(problem_root.xpath("./div[@class='input-specification']")))
+            input_spec_md = div2md(from_list1(
+                problem_root.xpath("./div[@class='input-specification']")
+            )).removeprefix("Input").strip()
         except Exception as e:
             logger.exception(e)
             logger.warning("Cannot parse input specification")
         try:
-            interaction_spec_md = div2md(interaction_div.getparent())
+            interaction_spec_md = div2md(
+                interaction_div.getparent()
+            ).removeprefix("Interaction").strip()
         except Exception as e:
             logger.exception(e)
             logger.warning("Cannot parse interaction specification")
     else:
         try:
-            input_spec_md = div2md(from_list1(problem_root.xpath("./div[@class='input-specification']")))
+            input_spec_md = div2md(from_list1(
+                problem_root.xpath("./div[@class='input-specification']")
+            )).removeprefix("Input").strip()
         except Exception as e:
             logger.exception(e)
             logger.warning("Cannot parse input specification")
         try:
-            output_spec_md = div2md(from_list1(problem_root.xpath("./div[@class='output-specification']")))
+            output_spec_md = div2md(from_list1(
+                problem_root.xpath("./div[@class='output-specification']")
+            )).removeprefix("Output").strip()
         except Exception as e:
             logger.exception(e)
             logger.warning("Cannot parse output specification")
 
+    # Note (testcase explanation, etc.)
     note_div = problem_root.xpath("./div[@class='note']")
     if note_div:
-        note_md = div2md(from_list1(note_div))
+        note_md = div2md(from_list1(note_div)).removeprefix("Note").strip()
     else:
         note_md = None
 
+    # Sample testcases
     testcases = []
     sample_div = tree.xpath("//div[@class='sample-tests']")[0]
-
     for input_div, output_div in \
             zip(sample_div.xpath(".//div[@class='input']"),
                 sample_div.xpath(".//div[@class='output']")):
@@ -104,16 +150,19 @@ def parse_problem_page_from_html(html: str) -> ProblemPage:
 
         testcases.append((input_text, answer_text))
 
+    logger.info("Parsed problem from html: %s", title)
     return ProblemPage(
         time_limit=time_limit,
         memory_limit=memory_limit,
         problem_type=problem_type,
+        title=title,
         problem_statement=problem_statement_md,
         input_spec=input_spec_md,
         output_spec=output_spec_md,
         interaction_spec=interaction_spec_md,
         testcases=testcases,
         note=note_md,
+        root_element=problem_root,
     )
 
 def parse_handle_from_html(html: str) -> str:
@@ -139,9 +188,9 @@ def parse_countdown_from_html(html: str) -> tuple[int, int, int] | None:
     h, m, s = int(h), int(m), int(s)
     return h, m, s
 
-def parse_problem_count_from_html(html: str) -> int:
+def parse_problem_indices_from_html(html: str) -> list[str]:
     tree = etree.parse(StringIO(html), etree.HTMLParser())
-    return len(tree.xpath("//td[contains(@class, 'id')]"))
+    return [idx.strip() for idx in tree.xpath("//td[contains(@class, 'id')]/a/text()")]
 
 def parse_last_submission_id_from_html(html: str) -> int:
     # <tr data-submission-id="315671433" data-a="7963403939888496640" partyMemberIds=";915785;">

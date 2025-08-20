@@ -120,22 +120,23 @@ Since login requries you to actually login in Firefox first, this doesn't violat
 
 ## TODO
 
-- [ ] Bug fix: some problems have multiple sub-problems like g1, g2
+- [x] Bug fix: some problems have multiple sub-problems like g1, g2
+- [ ] Bug fix: cannot track last submission
 - [ ] Floating-point errors in tests
 - [x] (Neo)vim config example
 - [ ] Fix "ensure logged in" (some old cookies still work on the host url)
 - [x] Use websocket to receive status updates
 - [ ] ~~Test on Windows & Mac~~ Write tests(?)
 - [ ] Provide more test outputs
-- [ ] Better CLI
-- [ ] Arguments for time and memory limit
-- [ ] Arguments for user customization
-- [ ] Logs to `~/.pyforces/logs/` to track bugs
+- [ ] Better CLI and color
+- [x] Arguments for time and memory limit
+- [x] Arguments for user customization (submit with custom URL and problem id)
+- [x] Log to `~/.pyforces/logs/` to track bugs
+- [ ] Log requests and responses
+- [ ] Also store images if `parse_problem_md`
 
 ## Not Planned
 
-* Colorful CLI
 * Login with username and password (too complicated firewall)
 * SPJ, interactive problem and communication. Most users don't write SPJ or interactor during contest, and after contest it is better to write custom test scripts for these problems.
 * Export as a python SDK for other libraries. CLI is the only way to use this tool.
-

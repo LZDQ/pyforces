@@ -1,6 +1,7 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TypeVar
 from logging import getLogger
+import re
 
 logger = getLogger(__name__)
 
@@ -19,9 +20,20 @@ def input_index(tot: int, prompt: Optional[str] = None):
         except AssertionError:
             prompt = f"Please input an integer within range [0, {tot}):\n"
         
-def input_y_or_n(prompt: str, default: Optional[bool] = None) -> bool:
+def input_y_or_n(
+    prompt: str,
+    add_prompt: bool = False,
+    default: Optional[bool] = None,
+) -> bool:
+    if add_prompt:
+        if default is None:
+            prompt = prompt + " [y/n]: "
+        elif default:
+            prompt = prompt + " [Y/n]: "
+        else:
+            prompt = prompt + " [y/N]: "
     while True:
-        s = input(prompt)
+        s = input(prompt).lower()
         if s == 'y':
             return True
         if s == 'n':
@@ -41,8 +53,7 @@ def get_current_contest_type_id_problem_id() -> tuple[str, int, str]:
     """ contest_type, contest_id, problem_id """
     parts = Path.cwd().parts
     problem_id = parts[-1].upper()
-    assert len(problem_id) == 1
-    assert problem_id.isalpha()
+    assert re.match(r'[A-Z][1-9]?', problem_id), f'"{problem_id}" is not valid problem id'
     contest_id = int(parts[-2])
     contest_type = parts[-3]
     assert contest_type in ['contest', 'gym']
@@ -52,10 +63,29 @@ def get_current_cpp_file() -> Path | None:
     file = Path(Path.cwd().name + '.cpp')
     if file.is_file():
         return file
+    logger.warning('File "%s" not found', file)
 
-def from_list1(l: list):
+T = TypeVar('T')
+def from_list1(l: list[T]) -> T:
     assert len(l) == 1, 'This list must have exactly one element'
     return l[0]
 
 def contest_type_from_id(x: int):
     return 'contest' if x<100000 else 'gym'
+
+def parse_human_bytesize(human_size: str):
+    m = re.match(r'(\d+)([KMG]?)', human_size.upper())
+    assert m, f'"{human_size}" is not valid byte size'
+    units = {"": 1, "K": 1024, "M": 1024*1024, "G": 1024*1024*1024}
+    return int(m.group(1)) * units[m.group(2)]
+
+def to_human_bytesize(byte_size: int) -> str:
+    b = byte_size
+    s = ''
+    for suf in "KMG":
+        if b >= 1024:
+            b >>= 10
+            s = suf
+        else:
+            break
+    return f"{b}{s}"

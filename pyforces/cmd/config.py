@@ -1,24 +1,23 @@
 from logging import getLogger
 import os.path
-from getpass import getpass
 from pathlib import Path
 import json
 
-from pyforces.client import Client, CloudscraperClient
+from pyforces.client import Client
 from pyforces.config import CodeTemplate, Config
 from pyforces.utils import input_index, input_y_or_n, parse_firefox_http_headers
 
 logger = getLogger(__name__)
 
 def login_with_http_header(cfg: Config, cln: Client):
-    if isinstance(cln, CloudscraperClient):
+    if isinstance(cln, Client):
         print("Please follow the video tutorial and paste the HTTP header from Firefox:")
         s = ''
         while True:
             try:
                 headers = json.loads(s)
                 break
-            except:
+            except json.JSONDecodeError:
                 s += input()
         headers = parse_firefox_http_headers(headers)
         cln.headers = headers
@@ -32,7 +31,7 @@ def login_with_http_header(cfg: Config, cln: Client):
         raise NotImplementedError()
 
 def ensure_logged_in(cfg: Config, cln: Client):
-    if isinstance(cln, CloudscraperClient):
+    if isinstance(cln, Client):
         cln.parse_csrf_token_and_handle(cfg.host)
         if cln.handle:
             print(f"Already logged in as {cln.handle}")
@@ -41,13 +40,6 @@ def ensure_logged_in(cfg: Config, cln: Client):
         cln.save()
     else:
         raise NotImplementedError()
-
-def login_with_handle_passwd(cfg: Config, cln: Client):
-    print("Note: password is hidden, just type it correctly.")
-    username = input('Username: ')
-    password = getpass()
-    cln.login(cfg.host, username, password)
-    cln.save()
 
 def add_template(cfg: Config):
     # TODO: add path completion
@@ -63,7 +55,7 @@ def add_template(cfg: Config):
     if not name:
         print("Name cannot be empty, exiting")
         return
-    make_default = input_y_or_n("Make it default? (y/n):\n")
+    make_default = input_y_or_n("Make it default? [y/n]:\n")
     if make_default:
         cfg.default_template = len(cfg.templates)
     cfg.templates.append(CodeTemplate(path=path, name=name))
@@ -95,11 +87,6 @@ def set_default_template(cfg: Config):
     cfg.default_template = idx
     cfg.save()
     
-def set_gen_after_parse(cfg: Config):
-    print(f"Current state: {cfg.gen_after_parse}")
-    cfg.gen_after_parse = input_y_or_n("New value (y/n):\n")
-    cfg.save()
-
 def set_host_domain(cfg: Config):
     print(f"Current host domain: {cfg.host}")
     cfg.host = input("New host domain (don't forget the https://):\n")
@@ -113,7 +100,7 @@ def set_folder_name(cfg: Config):
     old_dir = Path.home() / cfg.root_name
     new_dir = Path.home() / new_name
     if old_dir.is_dir():
-        if input_y_or_n(f"Move {old_dir} to {new_dir}? (Y/n)\n", default=True):
+        if input_y_or_n(f"Move {old_dir} to {new_dir}? [Y/n]\n", default=True):
             old_dir.rename(new_dir)
             logger.info("Moved %s to %s", old_dir, new_dir)
     else:
@@ -129,17 +116,16 @@ def set_cpp_std(cfg: Config):
     cfg.submit_cpp_std = options[input_index(3)]
     cfg.save()
 
-def config_race(cfg: Config):
-    print(f"How many seconds in advance to open url in browser? (input negative integer to postpone)")
-    print(f"Current value: {cfg.race_pre_sec}")
-    race_pre_sec = input(f"New value (input empty line if u don't want to change it):\n")
-    if race_pre_sec:
-        try:
-            cfg.race_pre_sec = int(race_pre_sec)
-        except ValueError:
-            print("Please input an integer. Aborting")
-            return
+def config_parse(cfg: Config):
+    print(f"Whether gen after parse?")
+    print(f"Current value: {cfg.gen_after_parse}")
+    cfg.gen_after_parse = input_y_or_n("New value", add_prompt=True, default=cfg.gen_after_parse)
+    print(f"Whether store `problem.md` when `pyforces parse`?")
+    print(f"Current value: {cfg.parse_problem_md}")
+    cfg.parse_problem_md = input_y_or_n("New value", add_prompt=True, default=cfg.parse_problem_md)
+    cfg.save()
 
+def config_race(cfg: Config):
     print(f"What url to open?")
     print(f"Input / if u want to open the contest dashboard;")
     print(f"Input /problems if u want to open the complete problemset;")
@@ -155,17 +141,21 @@ def config_race(cfg: Config):
 
     print(f"How many seconds do u want to delay the parsing (to avoid network congestion)?")
     print(f"Current value: {cfg.race_delay_parse}")
-    race_delay_parse = input(f"New value (input empty line if u don't want to change it):\n")
+    race_delay_parse = input("New value (input empty line if u don't want to change it):\n")
     if race_delay_parse:
         try:
             race_delay_parse = int(race_delay_parse)
         except ValueError:
-            print(f"Please input an integer.")
+            print("Please input an integer.")
             return
         if race_delay_parse < 0:
-            print(f"Please input a non-negative integer.")
+            print("Please input a non-negative integer.")
             return
         cfg.race_delay_parse = race_delay_parse
+
+    print(f"Do you want to link files? Link g2.cpp to g1.cpp so that you can continue on that.")
+    print(f"Current value: {cfg.race_link_sub_problem}")
+    cfg.race_link_sub_problem = input_y_or_n("New value", add_prompt=True, default=cfg.race_link_sub_problem)
 
     cfg.save()
 
@@ -177,13 +167,14 @@ def do_config(cfg: Config, cln: Client):
         ('login with HTTP header', login_with_http_header),
         ('ensure logged in', ensure_logged_in),
         # ('login with username and password', login_handle_passwd),
-        ('add a template', lambda cfg, cln: add_template(cfg)),
-        ('delete a template', lambda cfg, cln: delete_template(cfg)),
-        ('set default template', lambda cfg, cln: set_default_template(cfg)),
-        ('set host domain', lambda cfg, cln: set_host_domain(cfg)),
-        ('set root folder name', lambda cfg, cln: set_folder_name(cfg)),
-        ('set C++ standard for submission', lambda cfg, cln: set_cpp_std(cfg)),
-        ('config race', lambda cfg, cln: config_race(cfg)),
+        ('add a template', lambda cfg, _: add_template(cfg)),
+        ('delete a template', lambda cfg, _: delete_template(cfg)),
+        ('set default template', lambda cfg, _: set_default_template(cfg)),
+        ('set host domain', lambda cfg, _: set_host_domain(cfg)),
+        ('set root folder name', lambda cfg, _: set_folder_name(cfg)),
+        ('set C++ standard for submission', lambda cfg, _: set_cpp_std(cfg)),
+        ('config parse', lambda cfg, _: config_parse(cfg)),
+        ('config race', lambda cfg, _: config_race(cfg)),
     ]
 
     for i, opt in enumerate(options):
