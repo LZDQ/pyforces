@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TypeVar
 from logging import getLogger
 import re
 
@@ -20,9 +20,20 @@ def input_index(tot: int, prompt: Optional[str] = None):
         except AssertionError:
             prompt = f"Please input an integer within range [0, {tot}):\n"
         
-def input_y_or_n(prompt: str, default: Optional[bool] = None) -> bool:
+def input_y_or_n(
+    prompt: str,
+    add_prompt: bool = False,
+    default: Optional[bool] = None,
+) -> bool:
+    if add_prompt:
+        if default is None:
+            prompt = prompt + " [y/n]: "
+        elif default:
+            prompt = prompt + " [Y/n]: "
+        else:
+            prompt = prompt + " [y/N]: "
     while True:
-        s = input(prompt)
+        s = input(prompt).lower()
         if s == 'y':
             return True
         if s == 'n':
@@ -54,7 +65,8 @@ def get_current_cpp_file() -> Path | None:
         return file
     logger.warning('File "%s" not found', file)
 
-def from_list1(l: list):
+T = TypeVar('T')
+def from_list1(l: list[T]) -> T:
     assert len(l) == 1, 'This list must have exactly one element'
     return l[0]
 
@@ -66,3 +78,14 @@ def parse_human_bytesize(human_size: str):
     assert m, f'"{human_size}" is not valid byte size'
     units = {"": 1, "K": 1024, "M": 1024*1024, "G": 1024*1024*1024}
     return int(m.group(1)) * units[m.group(2)]
+
+def to_human_bytesize(byte_size: int) -> str:
+    b = byte_size
+    s = ''
+    for suf in "KMG":
+        if b >= 1024:
+            b >>= 10
+            s = suf
+        else:
+            break
+    return f"{b}{s}"

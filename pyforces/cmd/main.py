@@ -46,7 +46,7 @@ and then open the url and parse the testcases for each problem under ~/cf/contes
 
     # gen
     gen_parser = subparsers.add_parser('gen')
-    gen_parser.add_argument('name', type=str, help="The template's name")
+    gen_parser.add_argument('name', type=str, nargs='?', help="The template's name")
 
     # parse
     parse_parser = subparsers.add_parser('parse', description="""

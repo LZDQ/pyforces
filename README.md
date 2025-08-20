@@ -133,6 +133,7 @@ Since login requries you to actually login in Firefox first, this doesn't violat
 - [x] Arguments for user customization (submit with custom URL and problem id)
 - [x] Log to `~/.pyforces/logs/` to track bugs
 - [ ] Log requests and responses
+- [ ] Also store images if `parse_problem_md`
 
 ## Not Planned
 

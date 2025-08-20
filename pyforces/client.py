@@ -50,7 +50,8 @@ class Client:
             logger.info("Detected headers with only one entry with dict value, trying parsing firefox headers...")
             try:
                 headers = parse_firefox_http_headers(headers)
-            except:
+            except Exception as e:
+                logger.exception(e)
                 logger.error("Failed to parse firefox headers")
                 headers = None
 
@@ -141,17 +142,17 @@ class Client:
             try:
                 logger.info("Parsed last submission id %d", sub_id)
                 return sub_id, cc, pc
-            except:
+            except Exception as e:
+                logger.exception(e)
                 logger.error("Failed to get last submission id")
                 return
 
         return
 
-    def parse_testcases(self, url: str) -> list[tuple[str, str]]:
-        problem = CFProblem.parse_from_url(
+    def parse_problem(self, url: str) -> CFProblem:
+        return CFProblem.parse_from_url(
             url, web_parser=lambda u: self.scraper.get(u, headers=self.headers).text
         )
-        return problem.testcases
     
     def save(self):
         if self.headers:
@@ -177,10 +178,11 @@ class Client:
             self.csrf_token = parse_csrf_token_from_html(resp.text)
             self.handle = parse_handle_from_html(resp.text)
             logger.info("Parsed csrf token %s and handle %s", self.csrf_token, self.handle)
-        except:
+        except Exception as e:
             self.csrf_token = None
             self.handle = None
-            logger.warning("Cannot parse csrf token and handle (not logged in)")
+            logger.exception(e)
+            logger.error("Cannot parse csrf token and handle (not logged in)")
     
     def parse_countdown(self, url_contest: str) -> tuple[int, int, int] | None:
         """ Parse the /countdown url and return h,m,s, or None if already started

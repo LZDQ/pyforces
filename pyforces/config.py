@@ -35,6 +35,7 @@ class Config:
     Vars:
         templates: code templates
         default_template: index of default template, -1 if not set
+        parse_problem_md: whether store `problem.md` when parsing
         gen_after_parse: whether gen a template after parse
         host: codeforces host url
         root_name: the folder name under ~/, default 'cf'
@@ -46,6 +47,7 @@ class Config:
     
     templates: list[CodeTemplate]
     default_template: int
+    parse_problem_md: bool
     gen_after_parse: bool
     host: str
     root_name: str
@@ -71,6 +73,7 @@ class Config:
         return cls(
             templates=[CodeTemplate(**kwargs) for kwargs in cfg.get('templates', [])],
             default_template=cfg.get('default_template', -1),
+            parse_problem_md=cfg.get('parse_problem_md', False),
             gen_after_parse=cfg.get('gen_after_parse', True),
             host=cfg.get('host', 'https://codeforces.com'),
             root_name=cfg.get('root_name', 'cf'),
@@ -86,6 +89,7 @@ class Config:
         cfg = {
             'templates': [{'path': str(t.path), 'name': t.name} for t in self.templates],
             'default_template': self.default_template,
+            'parse_problem_md': self.parse_problem_md,
             'gen_after_parse': self.gen_after_parse,
             'host': self.host,
             'root_name': self.root_name,

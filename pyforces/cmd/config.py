@@ -17,7 +17,7 @@ def login_with_http_header(cfg: Config, cln: Client):
             try:
                 headers = json.loads(s)
                 break
-            except:
+            except json.JSONDecodeError:
                 s += input()
         headers = parse_firefox_http_headers(headers)
         cln.headers = headers
@@ -87,11 +87,6 @@ def set_default_template(cfg: Config):
     cfg.default_template = idx
     cfg.save()
     
-def set_gen_after_parse(cfg: Config):
-    print(f"Current state: {cfg.gen_after_parse}")
-    cfg.gen_after_parse = input_y_or_n("New value [y/n]:\n")
-    cfg.save()
-
 def set_host_domain(cfg: Config):
     print(f"Current host domain: {cfg.host}")
     cfg.host = input("New host domain (don't forget the https://):\n")
@@ -119,6 +114,15 @@ def set_cpp_std(cfg: Config):
     for i, opt in enumerate(options):
         print(f"{i}) {opt}")
     cfg.submit_cpp_std = options[input_index(3)]
+    cfg.save()
+
+def config_parse(cfg: Config):
+    print(f"Whether gen after parse?")
+    print(f"Current value: {cfg.gen_after_parse}")
+    cfg.gen_after_parse = input_y_or_n("New value", add_prompt=True, default=cfg.gen_after_parse)
+    print(f"Whether store `problem.md` when `pyforces parse`?")
+    print(f"Current value: {cfg.parse_problem_md}")
+    cfg.parse_problem_md = input_y_or_n("New value", add_prompt=True, default=cfg.parse_problem_md)
     cfg.save()
 
 def config_race(cfg: Config):
@@ -151,10 +155,7 @@ def config_race(cfg: Config):
 
     print(f"Do you want to link files? Link g2.cpp to g1.cpp so that you can continue on that.")
     print(f"Current value: {cfg.race_link_sub_problem}")
-    prompt = "New value "
-    prompt += "[Y/n]" if cfg.race_link_sub_problem else "[y/N]"
-    prompt += ":\n"
-    cfg.race_link_sub_problem = input_y_or_n(prompt, default=cfg.race_link_sub_problem)
+    cfg.race_link_sub_problem = input_y_or_n("New value", add_prompt=True, default=cfg.race_link_sub_problem)
 
     cfg.save()
 
@@ -166,13 +167,14 @@ def do_config(cfg: Config, cln: Client):
         ('login with HTTP header', login_with_http_header),
         ('ensure logged in', ensure_logged_in),
         # ('login with username and password', login_handle_passwd),
-        ('add a template', lambda cfg, cln: add_template(cfg)),
-        ('delete a template', lambda cfg, cln: delete_template(cfg)),
-        ('set default template', lambda cfg, cln: set_default_template(cfg)),
-        ('set host domain', lambda cfg, cln: set_host_domain(cfg)),
-        ('set root folder name', lambda cfg, cln: set_folder_name(cfg)),
-        ('set C++ standard for submission', lambda cfg, cln: set_cpp_std(cfg)),
-        ('config race', lambda cfg, cln: config_race(cfg)),
+        ('add a template', lambda cfg, _: add_template(cfg)),
+        ('delete a template', lambda cfg, _: delete_template(cfg)),
+        ('set default template', lambda cfg, _: set_default_template(cfg)),
+        ('set host domain', lambda cfg, _: set_host_domain(cfg)),
+        ('set root folder name', lambda cfg, _: set_folder_name(cfg)),
+        ('set C++ standard for submission', lambda cfg, _: set_cpp_std(cfg)),
+        ('config parse', lambda cfg, _: config_parse(cfg)),
+        ('config race', lambda cfg, _: config_race(cfg)),
     ]
 
     for i, opt in enumerate(options):
