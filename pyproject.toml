@@ -9,6 +9,7 @@ dependencies = [
 	"psutil",
 	"websocket-client",
 	"markdownify",
+	"colorlog",
 ]
 requires-python = ">=3.10"
 license = "WTFPL"
