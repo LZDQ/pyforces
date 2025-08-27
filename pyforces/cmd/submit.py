@@ -54,7 +54,11 @@ def do_submit(cfg: Config, cln: Client, args: Namespace):
         sub_id, cc, pc = sub_info
         text = f"Watching submission {sub_id}"
         print(text)
-        text += '\n    {status}'
+        text += '\n    {status_render}'
+        sub_status = {
+            'test_id': 0,
+            'status': '',
+        }
         if args.poll is None:  # use websocket
             url = 'wss' if cfg.host.startswith('https') else 'ws'
             url += '://pubsub.' + cfg.host.split('://', 1)[1]
@@ -69,13 +73,15 @@ def do_submit(cfg: Config, cln: Client, args: Namespace):
                     logger.error("ws decode error", exc_info=e)
                 if data[1] != sub_id or data[2] != contest_id:
                     return
-                status = data[6]
-                test_id = data[8]
+                sub_status['test_id'] = max(sub_status['test_id'], data[8])
+                sub_status['status'] = data[6]
+                status_render = sub_status['status']
+                test_id = sub_status['test_id']
                 if test_id:
-                    status += f" {test_id}"
+                    status_render += f" {test_id}"
                 os.system('clear' if os.name == 'posix' else 'cls')
-                print(text.format(status=status))
-                if not status.startswith(('TESTING', 'SUBMITTED')):
+                print(text.format(status_render=status_render))
+                if not status_render.startswith(('TESTING', 'SUBMITTED')):
                     # the list is in the drop-down menu of status filter
                     # maybe SUBMITTED is not required?
                     ws.close()
@@ -107,10 +113,10 @@ def do_submit(cfg: Config, cln: Client, args: Namespace):
         else:  # use polling
             url = f"{cfg.host}/contest/{contest_id}/submission/{sub_id}"
             while True:
-                status = cln.parse_status(url)
+                status_render = cln.parse_status(url)
                 os.system('clear' if os.name == 'posix' else 'cls')
-                print(text.format(status=status))
-                if not status.startswith(["Running", "Pending"]):
+                print(text.format(status_render=status_render))
+                if not status_render.startswith(["Running", "Pending"]):
                     break
                 time.sleep(args.poll)
 

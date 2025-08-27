@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from logging import getLogger
 import subprocess
+import time
 
 from pyforces.cf.problem import CFProblem
 from pyforces.cf.parser import *
@@ -142,20 +143,23 @@ class Client:
             # return the submission id along with cc and pc (for websocket tracking)
             assert url.endswith("submit")
             status_url = url[:-6] + 'my'
+            sub_id = None
             for t in range(3):
                 resp = self.scraper.get(status_url, headers=self.headers)
                 try:
                     sub_id = parse_last_submission_id_from_html(resp.text)
                     cc, pc = parse_ws_cc_pc_from_html(resp.text)
-                except AttributeError:
+                except AttributeError as e:
+                    logger.exception(e)
                     print("Failed to get last submission id, retrying...")
-            try:
-                logger.info("Parsed last submission id %d", sub_id)
-                return sub_id, cc, pc
-            except Exception as e:
-                logger.exception(e)
+                time.sleep(5)
+
+            if sub_id is None:
                 logger.error("Failed to get last submission id")
                 return
+
+            logger.info("Parsed last submission id %d", sub_id)
+            return sub_id, cc, pc
 
         return
 
