@@ -114,6 +114,9 @@ If set, use this polling interval (in seconds) instead of websocket to receive u
     submit_parser.add_argument('--problem-id', type=str, help="""
 (For customization) the problem id to POST, like A, B, C, D1, D2
     """)
+    submit_parser.add_argument('--strip-comment', action='store_true', help="""
+Whether strip all comments before submitting (only support cpp files)
+    """)
     
     args = parser.parse_args()
 

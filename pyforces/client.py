@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from logging import getLogger
+import subprocess
 
 from pyforces.cf.problem import CFProblem
 from pyforces.cf.parser import *
@@ -82,6 +83,7 @@ class Client:
         program_type_id: int,
         source_file: Path,
         track: bool,
+        strip_comment: bool,
     ):
         """
         Args:
@@ -89,7 +91,8 @@ class Client:
             problem_id:  A, B, C, D1, D2, etc
             program_type_id:  54 for C++17
             source_file:  path to source file
-            track: whether return the submission id
+            track:  whether return the submission id
+            strip_comment:  whether use `g++ -E -fpreprocessed` to remove comments
         """
         if self.headers is None:
             print("You should login with HTTP headers first, see video tutorial.")
@@ -100,7 +103,14 @@ class Client:
             parsed = urlparse(url)
             self.parse_csrf_token(f"{parsed.scheme}://{parsed.hostname}")
 
-        source = source_file.read_text()
+        if source_file.suffix == '.cpp' and strip_comment:
+            source = subprocess.check_output(
+                # credits to https://www.reddit.com/r/cpp/comments/1ldkpn2/comment/mynbk4m/
+                ['g++', '-E', '-fpreprocessed', '-dD', '-P', str(source_file)]
+            )
+        else:
+            source = source_file.read_text()
+
         resp = self.scraper.post(
             url,
             headers=self.headers,

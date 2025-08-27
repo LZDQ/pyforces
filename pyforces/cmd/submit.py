@@ -44,6 +44,7 @@ def do_submit(cfg: Config, cln: Client, args: Namespace):
         program_type_id=program_type_id,
         source_file=source_file,
         track=args.track,
+        strip_comment=args.strip_comment,
     )
 
     if args.track:
