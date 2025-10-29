@@ -78,7 +78,7 @@ class TraditionalExecutor:
                 shell=self.is_shell,
                 stdin=input,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                # stderr=subprocess.PIPE,
                 text=True,
             )
             peak_memory = -1
@@ -120,8 +120,7 @@ class TraditionalExecutor:
                     execution_time=user_time,
                     peak_memory=peak_memory,
                     passed=False,
-                    reason=f"Runtime error, exit code {proc.returncode}" + \
-                    (': ' + proc.stderr.decode().strip() if proc.stderr else ''),
+                    reason=f"Runtime error, exit code {proc.returncode}.",
                 )
             if user_time > self.time_limit:
                 return ExecuteResult(
@@ -157,7 +156,7 @@ class TraditionalExecutor:
                     shell=self.is_shell,
                     stdin=input,
                     stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
+                    # stderr=subprocess.PIPE,
                     timeout=self.time_limit,
                     text=True,
                     check=True,
@@ -204,7 +203,6 @@ class TraditionalExecutor:
                     execution_time=end_time-start_time,
                     peak_memory=None,
                     passed=False,
-                    reason=f"Runtime error, exit code {e.returncode}" + \
-                    (': ' + e.stderr.decode().strip() if e.stderr else ''),
+                    reason=f"Runtime error, exit code {e.returncode}.",
                 )
 

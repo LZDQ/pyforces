@@ -8,6 +8,8 @@
 
 为 (neo)vim 用户设计的 [Codeforces](https://codeforces.com) 命令行工具，新的 [xalanq/cf-tool](https://github.com/xalanq/cf-tool)。
 
+注意：该文档可能不包含最新变化，请尽量阅读英文版。
+
 ## 为什么需要另一个命令行工具？
 
 Codeforces 最近增加了机器人检测，所有现有的纯命令行工具都被屏蔽。[参考1](https://codeforces.com/blog/entry/96091) [参考2](https://github.com/woshiluo/cf-tool/issues/5)
@@ -88,7 +90,9 @@ https://github.com/user-attachments/assets/cac3b09a-1809-4de3-bc9a-53d8d9df8c05
 
 如果视频中的方法失败，请先查看 [FAQ](#FAQ)。如果仍无法解决，可手动将你的头信息粘贴到 `~/.pyforces/headers.txt`。如果使用 Firefox，直接将 “(Copy All)” 粘贴到 `~/.pyforces/headers.txt` 即可。如果使用其他浏览器，请参考 [此示例](example/headers.txt) 的 `headers.txt`。
 
-注：配置中的 “ensure logged in” 选项实际上并不能保证你已登录。建议在每次比赛前都重新复制一次 HTTP 请求头至 pyforces。
+注：配置中的 “ensure logged in” 选项实际上并不能保证你已登录。
+
+**强烈建议**在每次比赛前都重新复制一次 HTTP 请求头至 pyforces。
 
 ## FAQ
 

@@ -23,13 +23,7 @@ Codeforces added bot detection recently, and AFAIK all the existing CLI tools ar
 
 Feature requests and PRs are welcomed.
 
-Since this tool is designed for speed only, some features of [xalanq/cf-tool](https://github.com/xalanq/cf-tool) are removed. Please don't request for any features that are not speed-sensitive or already supported by Codeforces webpage itself or other GUI tools like [CCH](https://github.com/CodeforcesContestHelper/CCHv2).
-
-## Platforms
-
-Developed on Linux; Tested on Linux, Mac and Windows.
-
-If you encounter any issues on Windows or Mac, please read the error message and stacktrace first. If you believe this is a bug or unwanted feature, submit an issue with the stacktrace, or use `pyforces --log-level=debug <subcommand> [sub-arguments]` to get even more verbose output.
+Since this tool is designed for **speed** only, some features of [xalanq/cf-tool](https://github.com/xalanq/cf-tool) are removed. If you want some other features like contest standing, please use Codeforces webpage itself or other GUI tools like [CCH](https://github.com/CodeforcesContestHelper/CCHv2).
 
 ## Installation
 
@@ -55,18 +49,18 @@ Then, follow this video to configure your HTTP header:
 
 https://github.com/user-attachments/assets/cac3b09a-1809-4de3-bc9a-53d8d9df8c05
 
-Note: in the video the root name has been configured to `cf` not default `pyforces`.
+(Note: in the video the root name has been configured to `cf` not default `pyforces`.)
 
 If the method in the video fails, check [FAQ](#FAQ) first. If that doesn't help, you can manually paste your headers to `~/.pyforces/headers.txt`. If you use Firefox, directly pasting the "(Copy All)" to `~/.pyforces/headers.txt` is okay. If you use other browsers, check [this](example/headers.txt) example `headers.txt`.
 
-**Warning**: the `ensure logged in` option in config doesn't actually ensure you are logged in. It is recommended to paste your headers before each contest.
+**IMPORTANT**: It is recommended to paste your headers before each contest. I'm not sure how long they last but it works for a single contest's session.
 
 ## Vim config
 
 The intended use of this tool is to bind some keys to speed up testing and submitting. Here is an example neovim keybinding configuration (vim users need to replace `term` by `!`):
 
 ```vim
-" test, and submit on success
+" test, and submit if test passed
 nnoremap <F5> :w<CR>:term pyforces test -f % && pyforces submit -f %<CR>
 " test
 nnoremap <F6> :term pyforces test -f %<CR>
@@ -79,10 +73,10 @@ Change the keys to your choices as you wish.
 Also, if you don't want to mess up keybindings of other buffers or projects, consider adding a filetype check and buffer prefix:
 
 ```vim
-" test, and submit on success
+" test, and submit if test passed
 au FileType cpp nnoremap <buffer><F5> :w<CR>:term pyforces test -f % && pyforces submit -f %<CR>
 " test
-au FileType cpp nnoremap <buffer><F6> :term pyforces test<CR>
+au FileType cpp nnoremap <buffer><F6> :term pyforces test -f %<CR>
 " submit
 au FileType cpp nnoremap <buffer><F7> :w<CR>:term pyforces submit -f %<CR>
 
@@ -94,7 +88,7 @@ au FileType python nnoremap <buffer><F7> :w<CR>:term pyforces submit -f % --prog
 
 ## FAQ
 
-### pip install failed
+#### pip install failed
 
 ```
 error: externally-managed-environment
@@ -102,21 +96,29 @@ error: externally-managed-environment
 × This environment is externally managed
 ```
 
-It is recommended to install this tool in a virtual environment managed by miniconda.
+It is recommended to install this tool in a virtual environment. I'd suggest astral-uv in 2025.
 
 If you don't want to use a virtual environment, adding `--break-system-packages` at the end of `pip install` should work.
 
-### Command 'pyforces' not found
+#### Command 'pyforces' not found
 
 If `pyforces` command isn't available, you can use `python -m pyforces` to invoke pyforces.
 
-### Terminal stuck when pasting headers
+#### Terminal stuck when pasting headers
 
 Change the buffer size of your terminal, and make sure you press enter after pasting it if it seems to stuck. You can modify the buffer size in your terminal's settings.
 
-### Is it violating bot detection?
+#### Is it violating bot detection?
 
 Since login requries you to actually login in Firefox first, this doesn't violate bot detection. For more details, see [here](https://codeforces.com/blog/entry/134322).
+
+#### Cannot track last submission
+
+This is a known bug and cannot be reproduced stably. However the submission always works, so you can still manually track the status.
+
+#### Other issues
+
+If you encounter any issues, please read the error message and stacktrace first. If you believe this is a bug or unwanted feature, submit an issue with the stacktrace, or use `pyforces --log-level=debug <subcommand> [sub-arguments]` to get even more verbose output.
 
 ## TODO
 
@@ -128,7 +130,7 @@ Since login requries you to actually login in Firefox first, this doesn't violat
 - [x] Use websocket to receive status updates
 - [ ] ~~Test on Windows & Mac~~ Write tests(?)
 - [ ] Provide more test outputs
-- [ ] Better CLI and color
+- [x] Better CLI ~~and color~~
 - [x] Arguments for time and memory limit
 - [x] Arguments for user customization (submit with custom URL and problem id)
 - [x] Log to `~/.pyforces/logs/` to track bugs

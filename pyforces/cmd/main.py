@@ -26,10 +26,14 @@ Welcome to pyforces! Parse, test, submit, make you blazingly fast!
 Configure the logging level (INFO, ERROR, etc).
 Also controlled by environment variable LOG_LEVEL, but argument takes precedence.
                         """,)
-    subparsers = parser.add_subparsers(dest='subcommand', required=True)
+    # Update in v4.2: provide useful help message if subcommand is not provided
+    subparsers = parser.add_subparsers(dest='subcommand')
 
     # config
-    config_parser = subparsers.add_parser('config')
+    config_parser = subparsers.add_parser(
+        'config',
+        description="Login and configure pyforces."
+    )
     # config_parser.add_argument('config_subcommand', nargs='?')
 
     # race
@@ -119,6 +123,17 @@ Whether strip all comments before submitting (only support cpp files)
     """)
     
     args = parser.parse_args()
+
+    # v4.2: If no subcommand is given, print the help message with examples and exit.
+    if args.subcommand is None:
+        parser.print_usage()
+        print("\nExamples:")
+        print("  pyforces config      # First-time setup for login and templates.")
+        print("  pyforces race 2092   # Prepare for a contest.")
+        print("  pyforces test        # Test your code against sample cases (in the current directory).")
+        print("  pyforces submit      # Submit your solution.")
+        print("\nUse 'pyforces <command> --help' for more details on a specific command.")
+        return
 
     # Ensure dir ~/.pyforces exists
     root_cfg = Path.home() / '.pyforces'
