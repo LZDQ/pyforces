@@ -26,7 +26,7 @@ Welcome to pyforces! Parse, test, submit, make you blazingly fast!
 Configure the logging level (INFO, ERROR, etc).
 Also controlled by environment variable LOG_LEVEL, but argument takes precedence.
                         """,)
-    # Update in v4.2: provide useful help message if subcommand is not provided
+    # Update in v0.4.2: provide useful help message if subcommand is not provided
     subparsers = parser.add_subparsers(dest='subcommand')
 
     # config
@@ -124,7 +124,7 @@ Whether strip all comments before submitting (only support cpp files)
     
     args = parser.parse_args()
 
-    # v4.2: If no subcommand is given, print the help message with examples and exit.
+    # v0.4.2: If no subcommand is given, print the help message with examples and exit.
     if args.subcommand is None:
         parser.print_usage()
         print("\nExamples:")
