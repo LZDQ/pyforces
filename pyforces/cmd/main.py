@@ -121,7 +121,7 @@ If set, use this polling interval (in seconds) instead of websocket to receive u
     submit_parser.add_argument('--strip-comment', action='store_true', help="""
 Whether strip all comments before submitting (only support cpp files)
     """)
-    
+
     args = parser.parse_args()
 
     # v0.4.2: If no subcommand is given, print the help message with examples and exit.

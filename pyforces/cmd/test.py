@@ -2,6 +2,7 @@ import os
 from argparse import Namespace
 from pathlib import Path
 import sys
+from colorama import Fore, Back, Style
 from pyforces.cf.execute import TraditionalExecutor
 from pyforces.utils import get_current_cpp_file, parse_human_bytesize
 from logging import getLogger
@@ -64,6 +65,7 @@ def do_test(args: Namespace):
             print("Other languages are not supported yet >< plz use --shell")
             return
 
+    # Run the tests
     return_code = 0  # exit code to indicate whether passed
     idx = 1
     while True:
@@ -74,14 +76,14 @@ def do_test(args: Namespace):
         with in_file.open() as fp_in, ans_file.open() as fp_ans:
             result = executor.execute(fp_in, fp_ans, args.poll)
         if result.passed:
-            print(f"#{idx} Passed...  {result.execution_time:.2f}s",
+            print(f"{Fore.GREEN}#{idx} Passed...{Fore.RESET}  {result.execution_time:.2f}s",
                   f"{result.peak_memory/1024/1024:.2f}MB" if result.peak_memory and
                   result.peak_memory>0 else "")
             if result.memory_exceeded:
                 # MLE, but don't change return_code
                 print(f"...But memory exceeded")
         else:
-            print(f"#{idx} Failed...  {result.reason}")
+            print(f"{Fore.RED}#{idx} Failed...{Fore.RESET}  {result.reason}")
             return_code = result.return_code or 1  # exit the status code if RE, else 1
         idx += 1
 

@@ -34,8 +34,8 @@ See [FAQ](#FAQ) if you encounter any problems.
 ## Usage
 
 * `pyforces config` to login and configure your tool. Firefox is needed for login. See [How to login](#How-to-login) below.
-* `pyforces race 2092` to start the contest `2092`. Same for gym (numbers >= 100000 are gyms).
-* `pyforces test` in the problem directory, like `~/cf/contest/2092/a`, to test your solution against parsed sample testcases. Note that you need to first compile it yourself, the executable filename is derived from the cpp filename.
+* `pyforces race 2092` to start the contest `2092`. The contest id is in the URL, for example [2092](https://codeforces.com/contest/2092/). Same for gym (numbers >= 100000 are gyms).
+* `pyforces test` in the problem directory, like `~/cf/contest/2092/a`, to test your solution against parsed sample testcases. Note that you need to first compile it yourself, and the executable filename is derived from the cpp filename. If the executable file's modified time is earlier than the source file's, you will see a warning.
 * `pyforces submit` in the problem folder, to submit your solution.
 * `pyforces parse` in the problem folder to parse sample testcases.
 * `pyforces gen` in the problem folder to generate a file from template.

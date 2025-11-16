@@ -10,6 +10,7 @@ dependencies = [
 	"websocket-client",
 	"markdownify",
 	"colorlog",
+	"colorama>=0.4.6",
 ]
 requires-python = ">=3.10"
 license = "WTFPL"

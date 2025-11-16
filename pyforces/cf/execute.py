@@ -9,10 +9,15 @@ from dataclasses import dataclass
 logger = getLogger(__name__)
 
 def compare_output(output: str, answer: str) -> tuple[bool, str]:
-    """ Compare output with answer. Return (passed, reason if not passed) """
+    """
+    Compare output with answer. Return tuple (passed, reason if not passed).
+
+    If not passed, also print the output and answer (as a side effect).
+    """
     # TODO: add more logics like floating-point errors
     output = output.rstrip()
     answer = answer.rstrip()
+
     if re.search(r'\b(yes|no)\b', answer, flags=re.IGNORECASE):
         logger.info('Found "Yes or No" type problem, performing case replacement')
         output = re.sub(r'\b(yes|no)\b', lambda m: m.group(1).lower(), output, flags=re.IGNORECASE)
@@ -21,14 +26,27 @@ def compare_output(output: str, answer: str) -> tuple[bool, str]:
     logger.debug('output is %s, answer is %s', repr(output), repr(answer))
     lines_output = output.splitlines()
     lines_answer = answer.splitlines()
+
+    def print_diff():
+        """ Print the output and answer. May add diff in the future. """
+        print("--- OUTPUT ---")
+        print(output)
+        print("--- ANSWER ---")
+        print(answer)
+        print("--------------")
+
     if len(lines_output) != len(lines_answer):
+        print_diff()
         return False, f"Expected {len(lines_answer)} lines, found {len(lines_output)} lines"
-    for ln, (line_out, line_ans) in enumerate(zip(lines_output, lines_answer)):
+
+    for ln, (line_out, line_ans) in enumerate(zip(lines_output, lines_answer), 1):
         line_out = line_out.rstrip()
         line_ans = line_ans.rstrip()
-        logger.debug('Comparing line %d: output="%s" answer="%s"', ln+1, line_out, line_ans)
+        logger.debug('Comparing line %d: output=%s answer=%s', ln, repr(line_out), repr(line_ans))
         if line_out != line_ans:
-            return False, f"Expected {line_ans} on line {ln+1}, found {line_out}"
+            print_diff()
+            return False, f"Expected {line_ans} on line {ln}, found {line_out}"
+
     return True, "Passed"
 
 @dataclass
@@ -96,7 +114,7 @@ class TraditionalExecutor:
                     logger.info("Stats tracking error %s", e)
                 time.sleep(1e-5)
                 polls += 1
-                if user_time > self.time_limit * 2:  # Allows it to run double time_limit
+                if user_time > self.time_limit:  # Change in v0.4.3: do NOT double time limit
                     proc.kill()
                     logger.info("Killed the program exceeding double timeout")
                     return ExecuteResult(
@@ -186,7 +204,7 @@ class TraditionalExecutor:
                     peak_memory=None,
                     memory_exceeded=None,
                     passed=False,
-                    reason=f"Time limit exceeded: {end_time - start_time} seconds",
+                    reason=f"Time limit exceeded: {end_time - start_time :.2f} seconds",
                 )
 
             except subprocess.CalledProcessError as e:

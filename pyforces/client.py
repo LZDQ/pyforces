@@ -104,11 +104,14 @@ class Client:
             parsed = urlparse(url)
             self.parse_csrf_token(f"{parsed.scheme}://{parsed.hostname}")
 
-        if source_file.suffix == '.cpp' and strip_comment:
-            source = subprocess.check_output(
-                # credits to https://www.reddit.com/r/cpp/comments/1ldkpn2/comment/mynbk4m/
-                ['g++', '-E', '-fpreprocessed', '-dD', '-P', str(source_file)]
-            )
+        if strip_comment:
+            if source_file.suffix == '.cpp':
+                source = subprocess.check_output(
+                    # credits to https://www.reddit.com/r/cpp/comments/1ldkpn2/comment/mynbk4m/
+                    ['g++', '-E', '-fpreprocessed', '-dD', '-P', str(source_file)]
+                )
+            else:
+                logger.warning("Option --strip-comment only supports cpp files.")
         else:
             source = source_file.read_text()
 
